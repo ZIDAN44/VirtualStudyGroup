@@ -18,10 +18,11 @@ function loadEnv($filePath) {
         $name = trim($name);
         $value = trim($value);
 
-        if (!array_key_exists($name, $_ENV)) {
-            $_ENV[$name] = $value;  // Load into $_ENV
-            $envVariables[$name] = $value; // Load into local array
-        }
+        // Remove surrounding quotes from the value, if present
+        $value = trim($value, '"\'');
+
+        $_ENV[$name] = $value;  // Load into $_ENV
+        $envVariables[$name] = $value; // Load into local array
     }
 
     return $envVariables;

@@ -1,7 +1,6 @@
 <?php
-// config.php - Database configuration
+// config.php - Database and MinIO configuration
 
-// Ensure the correct path to env_loader.php
 require_once __DIR__ . '/env_loader.php';
 
 try {
@@ -10,14 +9,20 @@ try {
     die($e->getMessage());
 }
 
-// Fetch database configuration from environment variables
+// Database configuration from environment variables
 $host = $_ENV['DB_HOST'] ?? 'localhost';
 $port = $_ENV['DB_PORT'] ?? '3306';
 $dbname = $_ENV['DB_NAME'] ?? 'database';
 $user = $_ENV['DB_USER'] ?? 'user';
 $password = $_ENV['DB_PASSWORD'] ?? '';
 
-// Create connection using the host, port, and database name
+// MinIO configuration from environment variables
+$minioBucketName = $_ENV['MINIO_BUCKET_NAME'];
+$minioAccessKey = $_ENV['MINIO_ACCESS_KEY'];
+$minioSecretKey = $_ENV['MINIO_SECRET_KEY'];
+$minioHost = $_ENV['MINIO_HOST'];
+
+// Create database connection
 $conn = new mysqli($host, $user, $password, $dbname, $port);
 
 if ($conn->connect_error) {
