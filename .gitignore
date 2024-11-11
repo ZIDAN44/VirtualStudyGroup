@@ -1,0 +1,5 @@
+# Ignore all files under upload-dir
+uploads/
+
+# Ignore environment variable files
+.env
