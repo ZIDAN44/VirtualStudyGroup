@@ -8,15 +8,17 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Fetch groups the user is part of
+// Get the current user ID
 $user_id = $_SESSION['user_id'];
-$stmt = $conn->prepare("SELECT g.group_id, g.group_name, g.description 
+
+// Fetch groups the user is NOT a member of
+$stmt = $conn->prepare("SELECT g.group_id, g.group_name, g.description
                         FROM groups g
-                        JOIN group_members gm ON g.group_id = gm.group_id
-                        WHERE gm.user_id = ?");
+                        LEFT JOIN group_members gm ON g.group_id = gm.group_id AND gm.user_id = ?
+                        WHERE gm.group_id IS NULL");
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
-$result = $stmt->get_result();
+$available_groups = $stmt->get_result();
 ?>
 
 <!DOCTYPE html>
@@ -24,16 +26,16 @@ $result = $stmt->get_result();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - Virtual Study Group</title>
+    <title>Join a Group - Virtual Study Group</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
 
-    <h2>Welcome, <?php echo htmlspecialchars($_SESSION['username']); ?>!</h2>
+    <h2>Join an Existing Group</h2>
 
     <?php
-    // Display success or error message if set
+    // Display success or error messages if set
     if (isset($_SESSION['success_message'])) {
         echo "<p style='color: green;'>" . $_SESSION['success_message'] . "</p>";
         unset($_SESSION['success_message']);
@@ -43,27 +45,21 @@ $result = $stmt->get_result();
     }
     ?>
 
-    <!-- Options to create or join a new group -->
-    <div>
-        <a href="create_group.php" class="button">Create a New Group</a>
-        <a href="join_group.php" class="button">Join an Existing Group</a>
-    </div>
-
-    <!-- Display the groups the user is part of -->
-    <h3>Your Study Groups</h3>
-
-    <?php if ($result->num_rows > 0): ?>
+    <?php if ($available_groups->num_rows > 0): ?>
         <ul>
-            <?php while ($group = $result->fetch_assoc()): ?>
+            <?php while ($group = $available_groups->fetch_assoc()): ?>
                 <li>
                     <h4><?php echo htmlspecialchars($group['group_name']); ?></h4>
                     <p><?php echo htmlspecialchars($group['description']); ?></p>
-                    <a href="group.php?group_id=<?php echo $group['group_id']; ?>">Enter Group Chat</a>
+                    <form action="process_join_group.php" method="POST">
+                        <input type="hidden" name="group_id" value="<?php echo $group['group_id']; ?>">
+                        <button type="submit">Join Group</button>
+                    </form>
                 </li>
             <?php endwhile; ?>
         </ul>
     <?php else: ?>
-        <p>You are not a member of any groups yet. Create or join a group to get started.</p>
+        <p>No groups available to join at the moment.</p>
     <?php endif; ?>
 
     <?php include 'includes/footer.php'; ?>
