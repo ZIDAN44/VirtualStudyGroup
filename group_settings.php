@@ -31,10 +31,10 @@ if (!$user_role) {
 }
 
 // Fetch group details
-$group_stmt = $conn->prepare("SELECT group_name, description FROM groups WHERE group_id = ?");
+$group_stmt = $conn->prepare("SELECT group_name, description, join_rule FROM groups WHERE group_id = ?");
 $group_stmt->bind_param("i", $group_id);
 $group_stmt->execute();
-$group_stmt->bind_result($group_name, $description);
+$group_stmt->bind_result($group_name, $description, $join_rule);
 $group_stmt->fetch();
 $group_stmt->close();
 
@@ -72,6 +72,7 @@ $members = $members_stmt->get_result();
     <h3>Group Details</h3>
     <p><strong>Group Name:</strong> <?php echo htmlspecialchars($group_name); ?></p>
     <p><strong>Description:</strong> <?php echo htmlspecialchars($description); ?></p>
+    <p><strong>Join Rule:</strong> <?php echo $join_rule === 'auto' ? 'Anyone can join directly' : 'Admin approval required'; ?></p>
 
     <!-- Group Members Section (Visible to All Members) -->
     <h3>Group Members</h3>
@@ -89,6 +90,7 @@ $members = $members_stmt->get_result();
         <ul>
             <li><a href="edit_group_info.php?group_id=<?php echo $group_id; ?>">Edit Group Information</a></li>
             <li><a href="remove_group.php?group_id=<?php echo $group_id; ?>" onclick="return confirm('Are you sure you want to delete this group? This action cannot be undone.');">Remove Group</a></li>
+            <li><a href="manage_join_requests.php?group_id=<?php echo $group_id; ?>">Manage Join Requests</a></li>
         </ul>
     <?php endif; ?>
 

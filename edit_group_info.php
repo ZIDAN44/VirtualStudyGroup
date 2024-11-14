@@ -30,11 +30,11 @@ if ($user_role !== 'Admin') {
     exit();
 }
 
-// Fetch group details
-$group_stmt = $conn->prepare("SELECT group_name, description FROM groups WHERE group_id = ?");
+// Fetch group details, including the join rule
+$group_stmt = $conn->prepare("SELECT group_name, description, join_rule FROM groups WHERE group_id = ?");
 $group_stmt->bind_param("i", $group_id);
 $group_stmt->execute();
-$group_stmt->bind_result($group_name, $description);
+$group_stmt->bind_result($group_name, $description, $join_rule);
 $group_stmt->fetch();
 $group_stmt->close();
 
@@ -42,10 +42,11 @@ $group_stmt->close();
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $new_group_name = $_POST['group_name'];
     $new_description = $_POST['description'];
+    $new_join_rule = $_POST['join_rule'];
 
-    // Update group information
-    $update_stmt = $conn->prepare("UPDATE groups SET group_name = ?, description = ? WHERE group_id = ?");
-    $update_stmt->bind_param("ssi", $new_group_name, $new_description, $group_id);
+    // Update group information, including the join rule
+    $update_stmt = $conn->prepare("UPDATE groups SET group_name = ?, description = ?, join_rule = ? WHERE group_id = ?");
+    $update_stmt->bind_param("sssi", $new_group_name, $new_description, $new_join_rule, $group_id);
 
     if ($update_stmt->execute()) {
         $_SESSION['success_message'] = "Group information updated successfully!";
@@ -72,12 +73,30 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <h2>Edit Group Information</h2>
 
+    <!-- Success/Error Messages -->
+    <?php if (isset($_SESSION['success_message'])): ?>
+        <p style="color: green;"><?php echo $_SESSION['success_message']; unset($_SESSION['success_message']); ?></p>
+    <?php endif; ?>
+    <?php if (isset($_SESSION['error_message'])): ?>
+        <p style="color: red;"><?php echo $_SESSION['error_message']; unset($_SESSION['error_message']); ?></p>
+    <?php endif; ?>
+
     <form action="edit_group_info.php?group_id=<?php echo $group_id; ?>" method="POST">
         <label for="group_name">Group Name:</label>
         <input type="text" name="group_name" value="<?php echo htmlspecialchars($group_name); ?>" required>
 
         <label for="description">Description:</label>
         <textarea name="description" rows="5" required><?php echo htmlspecialchars($description); ?></textarea>
+
+        <h3>Group Joining Rules</h3>
+        <label>
+            <input type="radio" name="join_rule" value="auto" <?php echo $join_rule === 'auto' ? 'checked' : ''; ?>>
+            New members can join without approval
+        </label><br>
+        <label>
+            <input type="radio" name="join_rule" value="manual" <?php echo $join_rule === 'manual' ? 'checked' : ''; ?>>
+            New members must wait for Admin approval
+        </label><br>
 
         <button type="submit">Save Changes</button>
     </form>

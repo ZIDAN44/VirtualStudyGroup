@@ -20,17 +20,41 @@ if (isset($_POST['group_id'])) {
     $check_result = $check_stmt->get_result();
 
     if ($check_result->num_rows == 0) {
-        // Add the user as a Member
-        $stmt = $conn->prepare("INSERT INTO group_members (user_id, group_id, role) VALUES (?, ?, 'Member')");
-        $stmt->bind_param("ii", $user_id, $group_id);
+        // Fetch the group joining rule
+        $rule_stmt = $conn->prepare("SELECT join_rule FROM groups WHERE group_id = ?");
+        $rule_stmt->bind_param("i", $group_id);
+        $rule_stmt->execute();
+        $rule_stmt->bind_result($join_rule);
+        $rule_stmt->fetch();
+        $rule_stmt->close();
 
-        if ($stmt->execute()) {
-            $_SESSION['success_message'] = "You have successfully joined the group!";
+        if ($join_rule === 'auto') {
+            // Add the user as a Member directly
+            $stmt = $conn->prepare("INSERT INTO group_members (user_id, group_id, role) VALUES (?, ?, 'Member')");
+            $stmt->bind_param("ii", $user_id, $group_id);
+
+            if ($stmt->execute()) {
+                $_SESSION['success_message'] = "You have successfully joined the group!";
+            } else {
+                $_SESSION['error_message'] = "Error joining group. Please try again.";
+            }
+
+            $stmt->close();
+        } elseif ($join_rule === 'manual') {
+            // Add a join request for Admin approval
+            $request_stmt = $conn->prepare("INSERT INTO join_requests (user_id, group_id) VALUES (?, ?)");
+            $request_stmt->bind_param("ii", $user_id, $group_id);
+
+            if ($request_stmt->execute()) {
+                $_SESSION['success_message'] = "Your join request has been sent. Please wait for Admin approval.";
+            } else {
+                $_SESSION['error_message'] = "Error sending join request. Please try again.";
+            }
+
+            $request_stmt->close();
         } else {
-            $_SESSION['error_message'] = "Error joining group. Please try again.";
+            $_SESSION['error_message'] = "Invalid group join rule.";
         }
-
-        $stmt->close();
     } else {
         // User is already a member
         $_SESSION['error_message'] = "You are already a member of this group.";
