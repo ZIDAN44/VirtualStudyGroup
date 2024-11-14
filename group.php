@@ -16,20 +16,19 @@ if (!$group_id) {
     exit();
 }
 
-// Check if the user is a member of this group
-$member_check_stmt = $conn->prepare("SELECT * FROM group_members WHERE user_id = ? AND group_id = ?");
+// Check if the user is a member of this group and get their role
+$member_check_stmt = $conn->prepare("SELECT role FROM group_members WHERE user_id = ? AND group_id = ?");
 $member_check_stmt->bind_param("ii", $user_id, $group_id);
 $member_check_stmt->execute();
-$membership_result = $member_check_stmt->get_result();
+$member_check_stmt->bind_result($user_role);
+$member_check_stmt->fetch();
+$member_check_stmt->close();
 
-if ($membership_result->num_rows == 0) {
-    // User is not a member of the group; redirect them to the dashboard
+if (!$user_role) {
     $_SESSION['error_message'] = "You are not a member of this group.";
     header("Location: dashboard.php");
     exit();
 }
-
-$member_check_stmt->close();
 
 // Fetch group name
 $group_stmt = $conn->prepare("SELECT group_name FROM groups WHERE group_id = ?");
@@ -43,12 +42,6 @@ if (!$group_name) {
     echo "Group not found.";
     exit();
 }
-
-// Fetch uploaded resources for this group
-$stmt = $conn->prepare("SELECT * FROM resources WHERE group_id = ? ORDER BY upload_time DESC");
-$stmt->bind_param("i", $group_id);
-$stmt->execute();
-$resources = $stmt->get_result();
 ?>
 
 <!DOCTYPE html>
@@ -62,16 +55,27 @@ $resources = $stmt->get_result();
 <body>
     <?php include 'includes/header.php'; ?>
 
-    <h2><?php echo htmlspecialchars($group_name); ?></h2>
+    <h2>
+        <a href="group_settings.php?group_id=<?php echo $group_id; ?>">
+            <?php echo htmlspecialchars($group_name); ?>
+        </a>
+    </h2>
 
-    <!-- Chat section -->
+    <!-- Chat Section -->
     <div id="chat-box" style="border: 1px solid #ccc; height: 400px; overflow-y: scroll; padding: 10px;">
-        <!-- Messages will be loaded here -->
+        <!-- Messages and resources will be loaded here -->
     </div>
 
     <form id="chat-form" style="margin-top: 10px;">
         <input type="text" id="chat-input" placeholder="Type a message..." required>
         <button type="submit">Send</button>
+    </form>
+
+    <!-- Upload Resource Button -->
+    <button id="upload-btn" style="margin-top: 20px;">Upload a Resource</button>
+    <form id="upload-form" action="upload_resource.php" method="POST" enctype="multipart/form-data" style="display: none;">
+        <input type="hidden" name="group_id" value="<?php echo $group_id; ?>">
+        <input type="file" id="resource-input" name="resource" style="display: none;" required>
     </form>
 
     <!-- Leave Group Button -->
@@ -80,39 +84,27 @@ $resources = $stmt->get_result();
         <button type="submit" style="background-color: red; color: white; padding: 10px; border: none;">Leave Group</button>
     </form>
 
-    <h3>Upload a Resource</h3>
-    <form action="upload_resource.php" method="POST" enctype="multipart/form-data">
-        <input type="hidden" name="group_id" value="<?php echo $group_id; ?>">
-        <label for="resource">Choose a file to upload:</label>
-        <input type="file" name="resource" required>
-        <button type="submit">Upload</button>
-    </form>
-
-    <h3>Available Resources</h3>
-    <?php if ($resources->num_rows > 0): ?>
-        <ul>
-            <?php while ($resource = $resources->fetch_assoc()): ?>
-                <li>
-                    <a href="<?php echo htmlspecialchars($resource['file_path']); ?>" target="_blank"><?php echo htmlspecialchars($resource['file_name']); ?></a>
-                    <small>Uploaded on <?php echo $resource['upload_time']; ?></small>
-                </li>
-            <?php endwhile; ?>
-        </ul>
-    <?php else: ?>
-        <p>No resources uploaded yet.</p>
-    <?php endif; ?>
-
     <script src="js/group_chat.js"></script>
     <script>
         const groupId = <?php echo json_encode($group_id); ?>;
         const userId = <?php echo json_encode($_SESSION['user_id']); ?>;
+
+        // Handle the upload button click
+        document.getElementById('upload-btn').addEventListener('click', function () {
+            document.getElementById('resource-input').click();
+        });
+
+        // Handle file selection and auto-submit
+        document.getElementById('resource-input').addEventListener('change', function () {
+            if (this.files.length > 0) {
+                const confirmUpload = confirm("Do you want to upload this file?");
+                if (confirmUpload) {
+                    document.getElementById('upload-form').submit();
+                }
+            }
+        });
     </script>
 
     <?php include 'includes/footer.php'; ?>
 </body>
 </html>
-
-<?php
-$stmt->close();
-$conn->close();
-?>

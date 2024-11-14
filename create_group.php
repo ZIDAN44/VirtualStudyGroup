@@ -22,18 +22,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Get the ID of the newly created group
         $group_id = $conn->insert_id;
 
-        // Automatically add the creator as a member of the group
-        $member_stmt = $conn->prepare("INSERT INTO group_members (user_id, group_id) VALUES (?, ?)");
+        // Automatically add the creator as an Admin
+        $member_stmt = $conn->prepare("INSERT INTO group_members (user_id, group_id, role) VALUES (?, ?, 'Admin')");
         $member_stmt->bind_param("ii", $created_by, $group_id);
 
         if ($member_stmt->execute()) {
-            // Success: Redirect to dashboard with success message
-            $_SESSION['success_message'] = "Study group created successfully, and you have been added as a member!";
+            $_SESSION['success_message'] = "Study group created successfully, and you have been added as Admin!";
             header("Location: dashboard.php");
             exit();
         } else {
-            // Error in adding creator as a member
-            $error_message = "Group created, but there was an error adding you as a member.";
+            $error_message = "Group created, but there was an error adding you as Admin.";
         }
 
         $member_stmt->close();

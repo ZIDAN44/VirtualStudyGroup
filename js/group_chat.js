@@ -3,25 +3,25 @@ document.addEventListener("DOMContentLoaded", function () {
     const chatInput = document.getElementById("chat-input");
     const chatBox = document.getElementById("chat-box");
 
-    // Function to fetch and load messages
-    function loadMessages() {
+    // Function to fetch and display chat messages and resources
+    function loadMessagesAndResources() {
         fetch("fetch_messages.php?group_id=" + groupId)
             .then(response => response.text())
             .then(data => {
                 chatBox.innerHTML = data;
                 chatBox.scrollTop = chatBox.scrollHeight; // Scroll to the bottom
             })
-            .catch(error => console.error("Error fetching messages:", error));
+            .catch(error => console.error("Error fetching messages and resources:", error));
     }
 
-    // Load messages initially and every 5 seconds
-    loadMessages();
-    setInterval(loadMessages, 5000);
+    // Load messages and resources initially and every 5 seconds
+    loadMessagesAndResources();
+    setInterval(loadMessagesAndResources, 5000);
 
     // Handle message submission
     chatForm.addEventListener("submit", function (event) {
         event.preventDefault();
-        
+
         const message = chatInput.value;
         if (!message) return;
 
@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", function () {
         .then(response => response.text())
         .then(data => {
             chatInput.value = ""; // Clear input
-            loadMessages(); // Reload messages
+            loadMessagesAndResources(); // Reload messages and resources
         })
         .catch(error => console.error("Error sending message:", error));
     });

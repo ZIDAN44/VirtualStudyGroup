@@ -20,8 +20,8 @@ if (isset($_POST['group_id'])) {
     $check_result = $check_stmt->get_result();
 
     if ($check_result->num_rows == 0) {
-        // User is not a member; proceed with adding them to the group
-        $stmt = $conn->prepare("INSERT INTO group_members (user_id, group_id) VALUES (?, ?)");
+        // Add the user as a Member
+        $stmt = $conn->prepare("INSERT INTO group_members (user_id, group_id, role) VALUES (?, ?, 'Member')");
         $stmt->bind_param("ii", $user_id, $group_id);
 
         if ($stmt->execute()) {
