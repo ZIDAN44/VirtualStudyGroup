@@ -24,10 +24,24 @@ $role_check_stmt->bind_result($user_role);
 $role_check_stmt->fetch();
 $role_check_stmt->close();
 
-if ($user_role !== 'Admin' && $user_role !== 'Co-Admin') {
-    $_SESSION['error_message'] = "You are not authorized to manage join requests.";
-    header("Location: group_settings.php?group_id=$group_id");
-    exit();
+if ($user_role !== 'Admin') {
+    // Check if the Co-Admin has permission to manage join requests
+    $permission_check_stmt = $conn->prepare("
+        SELECT can_manage_join_requests 
+        FROM coadmin_permissions 
+        WHERE group_id = ? AND user_id = ?
+    ");
+    $permission_check_stmt->bind_param("ii", $group_id, $user_id);
+    $permission_check_stmt->execute();
+    $permission_check_stmt->bind_result($can_manage_join_requests);
+    $permission_check_stmt->fetch();
+    $permission_check_stmt->close();
+
+    if (!$can_manage_join_requests) {
+        $_SESSION['error_message'] = "You are not authorized to manage join requests.";
+        header("Location: group_settings.php?group_id=$group_id");
+        exit();
+    }
 }
 
 // Fetch pending join requests

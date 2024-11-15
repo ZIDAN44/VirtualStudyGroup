@@ -38,10 +38,28 @@ $group_stmt->bind_result($group_name, $description, $join_rule);
 $group_stmt->fetch();
 $group_stmt->close();
 
+// Fetch permissions for the current user if Co-Admin
+$coadmin_permissions = [];
+if ($user_role === 'Co-Admin') {
+    $permissions_stmt = $conn->prepare("
+        SELECT can_edit_group_info, can_manage_join_requests, can_manage_group_members 
+        FROM coadmin_permissions 
+        WHERE group_id = ? AND user_id = ?
+    ");
+    $permissions_stmt->bind_param("ii", $group_id, $user_id);
+    $permissions_stmt->execute();
+    $permissions_result = $permissions_stmt->get_result();
+    $coadmin_permissions = $permissions_result->fetch_assoc();
+    $permissions_stmt->close();
+}
+
 // Fetch group members and their roles
-$members_stmt = $conn->prepare("SELECT u.username, gm.role FROM group_members gm
-                                JOIN users u ON gm.user_id = u.user_id
-                                WHERE gm.group_id = ?");
+$members_stmt = $conn->prepare("
+    SELECT u.username, gm.role, gm.user_id 
+    FROM group_members gm
+    JOIN users u ON gm.user_id = u.user_id
+    WHERE gm.group_id = ?
+");
 $members_stmt->bind_param("i", $group_id);
 $members_stmt->execute();
 $members = $members_stmt->get_result();
@@ -80,25 +98,37 @@ $members = $members_stmt->get_result();
         <?php while ($member = $members->fetch_assoc()): ?>
             <li>
                 <?php echo htmlspecialchars($member['username']) . ' (' . htmlspecialchars($member['role']) . ')'; ?>
+                <?php if ($user_role === 'Admin' && $member['role'] === 'Co-Admin'): ?>
+                    <!-- Link to Manage Permissions for Co-Admins -->
+                    <a href="manage_permissions.php?group_id=<?php echo $group_id; ?>&user_id=<?php echo $member['user_id']; ?>">Manage Permissions</a>
+                <?php endif; ?>
             </li>
         <?php endwhile; ?>
     </ul>
 
-    <!-- Admin Actions (Visible to Admin Only) -->
+    <!-- Admin Actions -->
     <?php if ($user_role === 'Admin'): ?>
         <h3>Admin Actions</h3>
         <ul>
             <li><a href="edit_group_info.php?group_id=<?php echo $group_id; ?>">Edit Group Information</a></li>
-            <li><a href="remove_group.php?group_id=<?php echo $group_id; ?>" onclick="return confirm('Are you sure you want to delete this group? This action cannot be undone.');">Remove Group</a></li>
             <li><a href="manage_join_requests.php?group_id=<?php echo $group_id; ?>">Manage Join Requests</a></li>
+            <li><a href="remove_group.php?group_id=<?php echo $group_id; ?>" onclick="return confirm('Are you sure you want to delete this group? This action cannot be undone.');">Remove Group</a></li>
         </ul>
     <?php endif; ?>
 
-    <!-- Admin and Co-Admin Actions: Manage Group Members -->
-    <?php if ($user_role === 'Admin' || $user_role === 'Co-Admin'): ?>
-        <h3>Group Management</h3>
+    <!-- Co-Admin Actions -->
+    <?php if ($user_role === 'Co-Admin'): ?>
+        <h3>Co-Admin Actions</h3>
         <ul>
-            <li><a href="group_members.php?group_id=<?php echo $group_id; ?>">Manage Group Members</a></li>
+            <?php if ($coadmin_permissions['can_edit_group_info']): ?>
+                <li><a href="edit_group_info.php?group_id=<?php echo $group_id; ?>">Edit Group Information</a></li>
+            <?php endif; ?>
+            <?php if ($coadmin_permissions['can_manage_join_requests']): ?>
+                <li><a href="manage_join_requests.php?group_id=<?php echo $group_id; ?>">Manage Join Requests</a></li>
+            <?php endif; ?>
+            <?php if ($coadmin_permissions['can_manage_group_members']): ?>
+                <li><a href="group_members.php?group_id=<?php echo $group_id; ?>">Manage Group Members</a></li>
+            <?php endif; ?>
         </ul>
     <?php endif; ?>
 

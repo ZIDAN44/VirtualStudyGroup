@@ -64,11 +64,28 @@ $members = $members_stmt->get_result();
                     </form>
                 <?php endif; ?>
 
-                <!-- Kick Member/Co-Admin (Admin & Co-Admin Restrictions) -->
-                <?php if (
-                    ($user_role === 'Admin' && $member['user_id'] !== $user_id) || // Admin can kick anyone except themselves
-                    ($user_role === 'Co-Admin' && $member['role'] === 'Member') // Co-Admin can only kick Members
-                ): ?>
+                <!-- Kick Member/Co-Admin -->
+                <?php
+                $can_manage_members = false;
+
+                if ($user_role === 'Admin') {
+                    $can_manage_members = true;
+                } elseif ($user_role === 'Co-Admin') {
+                    $permissions_stmt = $conn->prepare("
+                        SELECT can_manage_group_members 
+                        FROM coadmin_permissions 
+                        WHERE group_id = ? AND user_id = ?
+                    ");
+                    $permissions_stmt->bind_param("ii", $group_id, $user_id);
+                    $permissions_stmt->execute();
+                    $permissions_stmt->bind_result($can_manage_group_members);
+                    $permissions_stmt->fetch();
+                    $permissions_stmt->close();
+
+                    $can_manage_members = $can_manage_group_members && $member['role'] === 'Member';
+                }
+
+                if ($can_manage_members && $member['user_id'] !== $user_id): ?>
                     <form action="kick_member.php" method="POST" style="display:inline;">
                         <input type="hidden" name="group_id" value="<?php echo $group_id; ?>">
                         <input type="hidden" name="user_id" value="<?php echo $member['user_id']; ?>">

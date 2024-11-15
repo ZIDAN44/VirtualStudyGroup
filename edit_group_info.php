@@ -16,16 +16,21 @@ if (!$group_id) {
     exit();
 }
 
-// Check if the user is an Admin
-$member_check_stmt = $conn->prepare("SELECT role FROM group_members WHERE user_id = ? AND group_id = ?");
-$member_check_stmt->bind_param("ii", $user_id, $group_id);
-$member_check_stmt->execute();
-$member_check_stmt->bind_result($user_role);
-$member_check_stmt->fetch();
-$member_check_stmt->close();
+// Check if the user is an Admin or a Co-Admin with the required permission
+$permissions_stmt = $conn->prepare("
+    SELECT gm.role, cp.can_edit_group_info 
+    FROM group_members gm
+    LEFT JOIN coadmin_permissions cp ON gm.user_id = cp.user_id AND gm.group_id = cp.group_id
+    WHERE gm.user_id = ? AND gm.group_id = ?
+");
+$permissions_stmt->bind_param("ii", $user_id, $group_id);
+$permissions_stmt->execute();
+$permissions_stmt->bind_result($user_role, $can_edit_group_info);
+$permissions_stmt->fetch();
+$permissions_stmt->close();
 
-if ($user_role !== 'Admin') {
-    $_SESSION['error_message'] = "Only Admins can edit group information.";
+if ($user_role !== 'Admin' && (!$can_edit_group_info || $user_role !== 'Co-Admin')) {
+    $_SESSION['error_message'] = "You are not authorized to edit group information.";
     header("Location: group_settings.php?group_id=$group_id");
     exit();
 }
