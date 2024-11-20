@@ -112,6 +112,7 @@ $members = $members_stmt->get_result();
         <ul>
             <li><a href="edit_group_info.php?group_id=<?php echo $group_id; ?>">Edit Group Information</a></li>
             <li><a href="manage_join_requests.php?group_id=<?php echo $group_id; ?>">Manage Join Requests</a></li>
+            <li><a href="group_members.php?group_id=<?php echo $group_id; ?>">Manage Group Members</a></li>
             <li><a href="remove_group.php?group_id=<?php echo $group_id; ?>" onclick="return confirm('Are you sure you want to delete this group? This action cannot be undone.');">Remove Group</a></li>
         </ul>
     <?php endif; ?>
