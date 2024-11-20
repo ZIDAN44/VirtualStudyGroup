@@ -33,7 +33,7 @@ if ($user_role !== 'Admin') {
 
 // Fetch existing permissions for the Co-Admin
 $permissions_stmt = $conn->prepare("
-    SELECT can_edit_group_info, can_manage_join_requests, can_manage_group_members 
+    SELECT can_edit_group_info, can_manage_join_requests, can_manage_group_members, can_manage_ban_list 
     FROM coadmin_permissions 
     WHERE group_id = ? AND user_id = ?
 ");
@@ -47,23 +47,26 @@ $permissions_stmt->close();
 $can_edit_group_info = $permissions['can_edit_group_info'] ?? 0;
 $can_manage_join_requests = $permissions['can_manage_join_requests'] ?? 0;
 $can_manage_group_members = $permissions['can_manage_group_members'] ?? 0;
+$can_manage_ban_list = $permissions['can_manage_ban_list'] ?? 0;
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $edit_info = isset($_POST['can_edit_group_info']) ? 1 : 0;
     $manage_requests = isset($_POST['can_manage_join_requests']) ? 1 : 0;
     $manage_members = isset($_POST['can_manage_group_members']) ? 1 : 0;
+    $manage_bans = isset($_POST['can_manage_ban_list']) ? 1 : 0;
 
     // Insert or update permissions
     $upsert_stmt = $conn->prepare("
-        INSERT INTO coadmin_permissions (group_id, user_id, can_edit_group_info, can_manage_join_requests, can_manage_group_members)
-        VALUES (?, ?, ?, ?, ?)
+        INSERT INTO coadmin_permissions (group_id, user_id, can_edit_group_info, can_manage_join_requests, can_manage_group_members, can_manage_ban_list)
+        VALUES (?, ?, ?, ?, ?, ?)
         ON DUPLICATE KEY UPDATE 
             can_edit_group_info = VALUES(can_edit_group_info),
             can_manage_join_requests = VALUES(can_manage_join_requests),
-            can_manage_group_members = VALUES(can_manage_group_members)
+            can_manage_group_members = VALUES(can_manage_group_members),
+            can_manage_ban_list = VALUES(can_manage_ban_list)
     ");
-    $upsert_stmt->bind_param("iiiii", $group_id, $coadmin_id, $edit_info, $manage_requests, $manage_members);
+    $upsert_stmt->bind_param("iiiiii", $group_id, $coadmin_id, $edit_info, $manage_requests, $manage_members, $manage_bans);
     if ($upsert_stmt->execute()) {
         $_SESSION['success_message'] = "Permissions updated successfully!";
         header("Location: group_settings.php?group_id=$group_id");
@@ -108,6 +111,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <label>
             <input type="checkbox" name="can_manage_group_members" <?php echo $can_manage_group_members ? 'checked' : ''; ?>>
             Can Manage Group Members
+        </label><br>
+        <label>
+            <input type="checkbox" name="can_manage_ban_list" <?php echo $can_manage_ban_list ? 'checked' : ''; ?>>
+            Can Manage Ban Lists
         </label><br>
         <button type="submit">Save Permissions</button>
     </form>

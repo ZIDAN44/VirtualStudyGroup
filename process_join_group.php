@@ -13,6 +13,20 @@ if (isset($_POST['group_id'])) {
     $group_id = $_POST['group_id'];
     $user_id = $_SESSION['user_id'];
 
+    // Check if the user is banned from this group
+    $ban_check_stmt = $conn->prepare("SELECT * FROM banned_users WHERE user_id = ? AND group_id = ?");
+    $ban_check_stmt->bind_param("ii", $user_id, $group_id);
+    $ban_check_stmt->execute();
+    $ban_result = $ban_check_stmt->get_result();
+
+    if ($ban_result->num_rows > 0) {
+        $_SESSION['error_message'] = "You are banned from joining this group.";
+        $ban_check_stmt->close();
+        header("Location: join_group.php");
+        exit();
+    }
+    $ban_check_stmt->close();
+
     // Check if the user is already a member of this group
     $check_stmt = $conn->prepare("SELECT * FROM group_members WHERE user_id = ? AND group_id = ?");
     $check_stmt->bind_param("ii", $user_id, $group_id);
