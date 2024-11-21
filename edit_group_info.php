@@ -57,6 +57,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $new_rules = $_POST['rules'] ?? null;
     $new_max_members = isset($_POST['max_members']) && $_POST['max_members'] !== '' ? (int)$_POST['max_members'] : null;
 
+    // Check if the new group handle already exists
+    $handle_check_stmt = $conn->prepare("SELECT 1 FROM groups WHERE group_handle = ? AND group_id != ?");
+    $handle_check_stmt->bind_param("si", $new_group_handle, $group_id);
+    $handle_check_stmt->execute();
+    $handle_check_stmt->store_result();
+
+    if ($handle_check_stmt->num_rows > 0) {
+        $_SESSION['error_message'] = "The group handle '$new_group_handle' is already taken. Please choose a different handle.";
+        $handle_check_stmt->close();
+        header("Location: edit_group_info.php?group_id=$group_id");
+        exit();
+    }
+    $handle_check_stmt->close();
+
     // Handle group picture upload
     if (isset($_FILES['group_picture']) && $_FILES['group_picture']['error'] === 0) {
         $new_group_picture = uploadGroupPicture($_FILES['group_picture'], $group_id);
