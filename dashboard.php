@@ -10,7 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 
 // Fetch groups the user is part of
 $user_id = $_SESSION['user_id'];
-$stmt = $conn->prepare("SELECT g.group_id, g.group_name, g.description 
+$stmt = $conn->prepare("SELECT g.group_id, g.group_name, g.description, g.group_picture 
                         FROM groups g
                         JOIN group_members gm ON g.group_id = gm.group_id
                         WHERE gm.user_id = ?");
@@ -26,6 +26,7 @@ $result = $stmt->get_result();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dashboard - Virtual Study Group</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/group_style.css">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -53,12 +54,21 @@ $result = $stmt->get_result();
     <h3>Your Study Groups</h3>
 
     <?php if ($result->num_rows > 0): ?>
-        <ul>
+        <ul class="group-list">
             <?php while ($group = $result->fetch_assoc()): ?>
-                <li>
-                    <h4><?php echo htmlspecialchars($group['group_name']); ?></h4>
-                    <p><?php echo htmlspecialchars($group['description']); ?></p>
-                    <a href="group.php?group_id=<?php echo $group['group_id']; ?>">Enter Group Chat</a>
+                <li class="group-item">
+                    <?php 
+                    // Fallback to dummy image if group_picture is empty
+                    $group_picture = !empty($group['group_picture']) 
+                        ? htmlspecialchars($group['group_picture']) 
+                        : $dummyGPImage; 
+                    ?>
+                    <img src="<?php echo $group_picture; ?>" alt="<?php echo htmlspecialchars($group['group_name']); ?> Thumbnail" class="group-thumbnail">
+                    <div class="group-info">
+                        <h4><?php echo htmlspecialchars($group['group_name']); ?></h4>
+                        <p><?php echo htmlspecialchars($group['description']); ?></p>
+                        <a href="group.php?group_id=<?php echo $group['group_id']; ?>" class="enter-group">Enter Group Chat</a>
+                    </div>
                 </li>
             <?php endwhile; ?>
         </ul>

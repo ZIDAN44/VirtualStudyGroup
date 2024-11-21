@@ -22,6 +22,9 @@ $minioAccessKey = $_ENV['MINIO_ACCESS_KEY'];
 $minioSecretKey = $_ENV['MINIO_SECRET_KEY'];
 $minioHost = $_ENV['MINIO_HOST'];
 
+// Dummy Group profile Pic
+$dummyGPImage = "{$minioHost}/{$minioBucketName}/Dummy_Pic/Dummy_GProfile.png";
+
 // Create database connection
 $conn = new mysqli($host, $user, $password, $dbname, $port);
 

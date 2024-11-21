@@ -1,0 +1,99 @@
+/* Group List Container */
+.group-list {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+.group-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 10px;
+    background-color: #f9f9f9;
+    transition: box-shadow 0.3s ease;
+}
+
+.group-item:hover {
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* Group Thumbnail */
+.group-thumbnail {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 15px;
+    transition: transform 0.3s ease;
+}
+
+.group-thumbnail:hover {
+    transform: scale(1.1);
+}
+
+/* Group Info Section */
+.group-info {
+    display: flex;
+    flex-direction: column;
+}
+
+.group-info h4 {
+    margin: 0;
+    font-size: 1.2em;
+    color: #333;
+}
+
+.group-info p {
+    margin: 5px 0;
+    color: #666;
+}
+
+.enter-group {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: bold;
+    margin-top: 5px;
+}
+
+.enter-group:hover {
+    text-decoration: underline;
+}
+
+/* Group Header Section */
+.group-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+
+.group-header-thumbnail {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 10px;
+}
+
+.group-header h2 {
+    margin: 0;
+    font-size: 1.5em;
+    color: #333;
+    display: flex;
+    align-items: center;
+}
+
+.group-header h2 a {
+    text-decoration: none;
+    color: #007bff;
+}
+
+.group-header h2 a:hover {
+    text-decoration: underline;
+}

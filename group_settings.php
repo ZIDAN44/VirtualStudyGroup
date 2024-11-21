@@ -31,12 +31,17 @@ if (!$user_role) {
 }
 
 // Fetch group details
-$group_stmt = $conn->prepare("SELECT group_name, description, join_rule FROM groups WHERE group_id = ?");
+$group_stmt = $conn->prepare("SELECT group_name, group_picture, description, join_rule FROM groups WHERE group_id = ?");
 $group_stmt->bind_param("i", $group_id);
 $group_stmt->execute();
-$group_stmt->bind_result($group_name, $description, $join_rule);
+$group_stmt->bind_result($group_name, $group_picture, $description, $join_rule);
 $group_stmt->fetch();
 $group_stmt->close();
+
+// Fallback to dummy image if group_picture is empty
+$group_picture = !empty($group_picture) 
+    ? htmlspecialchars($group_picture) 
+    : $dummyGPImage;
 
 // Fetch permissions for the current user if Co-Admin
 $coadmin_permissions = [];
@@ -72,11 +77,18 @@ $members = $members_stmt->get_result();
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Group Settings - <?php echo htmlspecialchars($group_name); ?></title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/group_style.css">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
 
-    <h2>Group Settings - <?php echo htmlspecialchars($group_name); ?></h2>
+    <!-- Group Header Section -->
+    <div class="group-header">
+        <img src="<?php echo $group_picture; ?>" alt="<?php echo htmlspecialchars($group_name); ?> Thumbnail" class="group-header-thumbnail">
+        <h2>
+            <?php echo htmlspecialchars($group_name); ?>
+        </h2>
+    </div>
 
     <!-- Success/Error Messages -->
     <?php if (isset($_SESSION['success_message'])): ?>

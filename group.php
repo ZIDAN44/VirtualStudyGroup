@@ -30,11 +30,11 @@ if (!$user_role) {
     exit();
 }
 
-// Fetch group name
-$group_stmt = $conn->prepare("SELECT group_name FROM groups WHERE group_id = ?");
+// Fetch group name and picture
+$group_stmt = $conn->prepare("SELECT group_name, group_picture FROM groups WHERE group_id = ?");
 $group_stmt->bind_param("i", $group_id);
 $group_stmt->execute();
-$group_stmt->bind_result($group_name);
+$group_stmt->bind_result($group_name, $group_picture);
 $group_stmt->fetch();
 $group_stmt->close();
 
@@ -42,6 +42,11 @@ if (!$group_name) {
     echo "Group not found.";
     exit();
 }
+
+// Fallback to dummy image if group_picture is empty
+$group_picture = !empty($group_picture) 
+    ? htmlspecialchars($group_picture) 
+    : $dummyGPImage;
 ?>
 
 <!DOCTYPE html>
@@ -51,15 +56,20 @@ if (!$group_name) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?php echo htmlspecialchars($group_name); ?> - Virtual Study Group</title>
     <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/group_style.css">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
 
-    <h2>
-        <a href="group_settings.php?group_id=<?php echo $group_id; ?>">
-            <?php echo htmlspecialchars($group_name); ?>
-        </a>
-    </h2>
+    <!-- Group Header Section -->
+    <div class="group-header">
+        <img src="<?php echo $group_picture; ?>" alt="<?php echo htmlspecialchars($group_name); ?> Thumbnail" class="group-header-thumbnail">
+        <h2>
+            <a href="group_settings.php?group_id=<?php echo $group_id; ?>">
+                <?php echo htmlspecialchars($group_name); ?>
+            </a>
+        </h2>
+    </div>
 
     <!-- Chat Section -->
     <div id="chat-box" style="border: 1px solid #ccc; height: 400px; overflow-y: scroll; padding: 10px;">
