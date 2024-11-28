@@ -88,12 +88,6 @@ $group_picture = !empty($group_picture)
         <input type="file" id="resource-input" name="resource" style="display: none;" required>
     </form>
 
-    <!-- Leave Group Button -->
-    <form action="leave_group.php" method="POST" style="margin-top: 20px;">
-        <input type="hidden" name="group_id" value="<?php echo $group_id; ?>">
-        <button type="submit" style="background-color: red; color: white; padding: 10px; border: none;">Leave Group</button>
-    </form>
-
     <script src="js/group_chat.js"></script>
     <script>
         const groupId = <?php echo json_encode($group_id); ?>;

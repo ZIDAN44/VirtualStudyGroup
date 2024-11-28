@@ -149,6 +149,12 @@ $members = $members_stmt->get_result();
         </ul>
     <?php endif; ?>
 
+    <!-- Leave Group Button -->
+    <form action="leave_group.php" method="POST">
+        <input type="hidden" name="group_id" value="<?php echo $group_id; ?>">
+        <button type="submit">Leave Group</button>
+    </form>
+
     <p><a href="group.php?group_id=<?php echo $group_id; ?>">Back to Group</a></p>
 
     <?php include 'includes/footer.php'; ?>
