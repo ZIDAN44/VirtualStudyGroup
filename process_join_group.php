@@ -34,34 +34,16 @@ if (isset($_POST['group_id'])) {
     $check_result = $check_stmt->get_result();
 
     if ($check_result->num_rows == 0) {
-        // Fetch the group joining rule
-        $rule_stmt = $conn->prepare("SELECT join_rule FROM groups WHERE group_id = ?");
+        // Fetch group details, including join rule and member caps
+        $rule_stmt = $conn->prepare("SELECT join_rule, max_members, current_members FROM groups WHERE group_id = ?");
         $rule_stmt->bind_param("i", $group_id);
         $rule_stmt->execute();
-        $rule_stmt->bind_result($join_rule);
+        $rule_stmt->bind_result($join_rule, $max_members, $current_members);
         $rule_stmt->fetch();
         $rule_stmt->close();
 
-        if ($join_rule === 'auto') {
-            // Add the user as a Member directly
-            $stmt = $conn->prepare("INSERT INTO group_members (user_id, group_id, role) VALUES (?, ?, 'Member')");
-            $stmt->bind_param("ii", $user_id, $group_id);
-
-            if ($stmt->execute()) {
-                // Increment the current_members count
-                $update_members_stmt = $conn->prepare("UPDATE groups SET current_members = current_members + 1 WHERE group_id = ?");
-                $update_members_stmt->bind_param("i", $group_id);
-                $update_members_stmt->execute();
-                $update_members_stmt->close();
-
-                $_SESSION['success_message'] = "You have successfully joined the group!";
-            } else {
-                $_SESSION['error_message'] = "Error joining group. Please try again.";
-            }
-
-            $stmt->close();
-        } elseif ($join_rule === 'manual') {
-            // Add a join request for Admin approval
+        if ($join_rule === 'manual') {
+            // Add a join request regardless of the member cap
             $request_stmt = $conn->prepare("INSERT INTO join_requests (user_id, group_id) VALUES (?, ?)");
             $request_stmt->bind_param("ii", $user_id, $group_id);
 
@@ -72,6 +54,28 @@ if (isset($_POST['group_id'])) {
             }
 
             $request_stmt->close();
+        } elseif ($join_rule === 'auto') {
+            if ($current_members < $max_members || $max_members === null) {
+                // Add the user as a Member directly
+                $stmt = $conn->prepare("INSERT INTO group_members (user_id, group_id, role) VALUES (?, ?, 'Member')");
+                $stmt->bind_param("ii", $user_id, $group_id);
+
+                if ($stmt->execute()) {
+                    // Increment the current_members count
+                    $update_members_stmt = $conn->prepare("UPDATE groups SET current_members = current_members + 1 WHERE group_id = ?");
+                    $update_members_stmt->bind_param("i", $group_id);
+                    $update_members_stmt->execute();
+                    $update_members_stmt->close();
+
+                    $_SESSION['success_message'] = "You have successfully joined the group!";
+                } else {
+                    $_SESSION['error_message'] = "Error joining group. Please try again.";
+                }
+
+                $stmt->close();
+            } else {
+                $_SESSION['error_message'] = "This group is full and cannot accept new members.";
+            }
         } else {
             $_SESSION['error_message'] = "Invalid group join rule.";
         }

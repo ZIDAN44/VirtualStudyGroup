@@ -33,28 +33,40 @@ if ($user_role !== 'Admin' && $user_role !== 'Co-Admin') {
 }
 
 if ($action === 'approve') {
-    // Approve the join request
-    $approve_stmt = $conn->prepare(
-        "UPDATE join_requests SET status = 'approved' WHERE request_id = ?"
-    );
-    $approve_stmt->bind_param("i", $request_id);
-    $approve_stmt->execute();
+    // Fetch current and max member counts
+    $member_count_stmt = $conn->prepare("SELECT max_members, current_members FROM groups WHERE group_id = ?");
+    $member_count_stmt->bind_param("i", $group_id);
+    $member_count_stmt->execute();
+    $member_count_stmt->bind_result($max_members, $current_members);
+    $member_count_stmt->fetch();
+    $member_count_stmt->close();
 
-    // Add user to group
-    $add_stmt = $conn->prepare(
-        "INSERT INTO group_members (user_id, group_id, role)
-         SELECT user_id, group_id, 'Member' FROM join_requests WHERE request_id = ?"
-    );
-    $add_stmt->bind_param("i", $request_id);
-    $add_stmt->execute();
+    if ($current_members < $max_members || $max_members === null) {
+        // Approve the join request
+        $approve_stmt = $conn->prepare(
+            "UPDATE join_requests SET status = 'approved' WHERE request_id = ?"
+        );
+        $approve_stmt->bind_param("i", $request_id);
+        $approve_stmt->execute();
 
-    // Increment the current_members count
-    $update_members_stmt = $conn->prepare("UPDATE groups SET current_members = current_members + 1 WHERE group_id = ?");
-    $update_members_stmt->bind_param("i", $group_id);
-    $update_members_stmt->execute();
-    $update_members_stmt->close();
+        // Add user to group
+        $add_stmt = $conn->prepare(
+            "INSERT INTO group_members (user_id, group_id, role)
+             SELECT user_id, group_id, 'Member' FROM join_requests WHERE request_id = ?"
+        );
+        $add_stmt->bind_param("i", $request_id);
+        $add_stmt->execute();
 
-    $_SESSION['success_message'] = "Join request approved!";
+        // Increment the current_members count
+        $update_members_stmt = $conn->prepare("UPDATE groups SET current_members = current_members + 1 WHERE group_id = ?");
+        $update_members_stmt->bind_param("i", $group_id);
+        $update_members_stmt->execute();
+        $update_members_stmt->close();
+
+        $_SESSION['success_message'] = "Join request approved!";
+    } else {
+        $_SESSION['error_message'] = "Cannot approve request. Group member limit reached.";
+    }
 } elseif ($action === 'reject') {
     // Reject the join request
     $reject_stmt = $conn->prepare(
