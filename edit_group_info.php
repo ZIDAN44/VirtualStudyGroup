@@ -38,13 +38,13 @@ if ($user_role !== 'Admin' && (!$can_edit_group_info || $user_role !== 'Co-Admin
 
 // Fetch group details
 $group_stmt = $conn->prepare("
-    SELECT group_name, group_handle, description, group_picture, max_members, join_rule, rules 
+    SELECT group_name, group_handle, description, group_picture, max_members, join_rule, rules, current_members
     FROM groups 
     WHERE group_id = ?
 ");
 $group_stmt->bind_param("i", $group_id);
 $group_stmt->execute();
-$group_stmt->bind_result($group_name, $group_handle, $description, $group_picture, $max_members, $join_rule, $rules);
+$group_stmt->bind_result($group_name, $group_handle, $description, $group_picture, $max_members, $join_rule, $rules, $current_members);
 $group_stmt->fetch();
 $group_stmt->close();
 
@@ -56,6 +56,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $new_join_rule = $_POST['join_rule'];
     $new_rules = $_POST['rules'] ?? null;
     $new_max_members = isset($_POST['max_members']) && $_POST['max_members'] !== '' ? (int)$_POST['max_members'] : null;
+
+    // Validate max_members against current_members
+    if ($new_max_members !== null && $new_max_members < $current_members) {
+        $_SESSION['error_message'] = "Maximum members cannot be less than the current number of members ($current_members).";
+        header("Location: edit_group_info.php?group_id=$group_id");
+        exit();
+    }
 
     // Check if the new group handle already exists
     $handle_check_stmt = $conn->prepare("SELECT 1 FROM groups WHERE group_handle = ? AND group_id != ?");
