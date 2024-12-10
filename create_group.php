@@ -30,7 +30,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $group_name = trim($_POST['group_name']);
     $description = trim($_POST['description'] ?? '');
     $created_by = $_SESSION['user_id'];
-    $max_members = isset($_POST['max_members']) && $_POST['max_members'] !== '' ? (int)$_POST['max_members'] : null;
+    $max_members = isset($_POST['max_members']) && $_POST['max_members'] !== '' ? (int)$_POST['max_members'] : 15;
     $join_rule = $_POST['join_rule'] ?? 'auto';
     $rules = $_POST['rules'] ?? null;
 
@@ -118,7 +118,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <textarea name="description" rows="5"></textarea>
 
         <label for="max_members">Maximum Members:</label>
-        <input type="number" name="max_members" placeholder="Leave empty for default limit">
+        <input type="number" name="max_members" placeholder="Leave empty for default limit: 15">
 
         <label for="join_rule">Join Rule:</label>
         <select name="join_rule">
