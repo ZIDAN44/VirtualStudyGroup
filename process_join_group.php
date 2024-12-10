@@ -34,6 +34,20 @@ if (isset($_POST['group_id'])) {
     $check_result = $check_stmt->get_result();
 
     if ($check_result->num_rows == 0) {
+        // Check if there is already a pending join request for this user and group
+        $pending_check_stmt = $conn->prepare("SELECT * FROM join_requests WHERE user_id = ? AND group_id = ? AND status = 'pending'");
+        $pending_check_stmt->bind_param("ii", $user_id, $group_id);
+        $pending_check_stmt->execute();
+        $pending_result = $pending_check_stmt->get_result();
+
+        if ($pending_result->num_rows > 0) {
+            $_SESSION['error_message'] = "You have already sent a join request for this group. Please wait for approval.";
+            $pending_check_stmt->close();
+            header("Location: join_group.php");
+            exit();
+        }
+        $pending_check_stmt->close();
+
         // Fetch group details, including join rule and member caps
         $rule_stmt = $conn->prepare("SELECT join_rule, max_members, current_members FROM groups WHERE group_id = ?");
         $rule_stmt->bind_param("i", $group_id);
