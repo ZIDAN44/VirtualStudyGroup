@@ -48,6 +48,12 @@ if (isset($_POST['group_id'])) {
             $stmt->bind_param("ii", $user_id, $group_id);
 
             if ($stmt->execute()) {
+                // Increment the current_members count
+                $update_members_stmt = $conn->prepare("UPDATE groups SET current_members = current_members + 1 WHERE group_id = ?");
+                $update_members_stmt->bind_param("i", $group_id);
+                $update_members_stmt->execute();
+                $update_members_stmt->close();
+
                 $_SESSION['success_message'] = "You have successfully joined the group!";
             } else {
                 $_SESSION['error_message'] = "Error joining group. Please try again.";

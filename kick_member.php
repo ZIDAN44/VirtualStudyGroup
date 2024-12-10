@@ -38,15 +38,25 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $remove_stmt->bind_param("ii", $user_id_to_kick, $group_id);
 
         if ($remove_stmt->execute()) {
-            // Add the user to the banned_users table with the banning user's ID
-            $ban_stmt = $conn->prepare("INSERT INTO banned_users (user_id, group_id, banned_by) VALUES (?, ?, ?)");
-            $ban_stmt->bind_param("iii", $user_id_to_kick, $group_id, $user_id);
-            if ($ban_stmt->execute()) {
-                $_SESSION['success_message'] = "Member successfully banned from the group.";
+            // Decrease the current_members count
+            $update_members_stmt = $conn->prepare("UPDATE groups SET current_members = current_members - 1 WHERE group_id = ?");
+            $update_members_stmt->bind_param("i", $group_id);
+
+            if ($update_members_stmt->execute()) {
+                // Add the user to the banned_users table with the banning user's ID
+                $ban_stmt = $conn->prepare("INSERT INTO banned_users (user_id, group_id, banned_by) VALUES (?, ?, ?)");
+                $ban_stmt->bind_param("iii", $user_id_to_kick, $group_id, $user_id);
+                if ($ban_stmt->execute()) {
+                    $_SESSION['success_message'] = "Member successfully banned from the group.";
+                } else {
+                    $_SESSION['error_message'] = "Failed to ban the member. Please try again.";
+                }
+                $ban_stmt->close();
             } else {
-                $_SESSION['error_message'] = "Failed to ban the member. Please try again.";
+                $_SESSION['error_message'] = "Failed to update the group's member count. Please try again.";
             }
-            $ban_stmt->close();
+
+            $update_members_stmt->close();
         } else {
             $_SESSION['error_message'] = "Failed to remove the member. Please try again.";
         }

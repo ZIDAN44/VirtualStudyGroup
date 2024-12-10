@@ -48,6 +48,12 @@ if ($action === 'approve') {
     $add_stmt->bind_param("i", $request_id);
     $add_stmt->execute();
 
+    // Increment the current_members count
+    $update_members_stmt = $conn->prepare("UPDATE groups SET current_members = current_members + 1 WHERE group_id = ?");
+    $update_members_stmt->bind_param("i", $group_id);
+    $update_members_stmt->execute();
+    $update_members_stmt->close();
+
     $_SESSION['success_message'] = "Join request approved!";
 } elseif ($action === 'reject') {
     // Reject the join request

@@ -52,6 +52,14 @@ if (isset($_POST['group_id'])) {
             }
             $stmt->close();
 
+            // Decrement the current_members count in the groups table
+            $update_stmt = $conn->prepare("UPDATE groups SET current_members = current_members - 1 WHERE group_id = ?");
+            $update_stmt->bind_param("i", $group_id);
+            if (!$update_stmt->execute()) {
+                throw new Exception("Failed to update the group's member count.");
+            }
+            $update_stmt->close();
+
             $conn->commit();
             $_SESSION['success_message'] = "You have successfully left the group.";
         } catch (Exception $e) {
