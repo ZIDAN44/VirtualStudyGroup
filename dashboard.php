@@ -10,7 +10,7 @@ if (!isset($_SESSION['user_id'])) {
 
 // Fetch groups the user is part of
 $user_id = $_SESSION['user_id'];
-$stmt = $conn->prepare("SELECT g.group_id, g.group_name, g.description, g.group_picture 
+$stmt = $conn->prepare("SELECT g.group_id, g.group_name, g.group_handle, g.description, g.group_picture 
                         FROM groups g
                         JOIN group_members gm ON g.group_id = gm.group_id
                         WHERE gm.user_id = ?");
@@ -65,7 +65,10 @@ $result = $stmt->get_result();
                     ?>
                     <img src="<?php echo $group_picture; ?>" alt="<?php echo htmlspecialchars($group['group_name']); ?> Thumbnail" class="group-thumbnail">
                     <div class="group-info">
-                        <h4><?php echo htmlspecialchars($group['group_name']); ?></h4>
+                        <h4>
+                            <?php echo htmlspecialchars($group['group_name']); ?> 
+                            <span class="group-handle">(<?php echo htmlspecialchars($group['group_handle']); ?>)</span>
+                        </h4>
                         <p><?php echo htmlspecialchars($group['description']); ?></p>
                         <a href="group.php?group_id=<?php echo $group['group_id']; ?>" class="enter-group">Enter Group Chat</a>
                     </div>

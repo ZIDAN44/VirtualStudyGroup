@@ -46,11 +46,19 @@
     color: #333;
 }
 
+.group-info h4 .group-handle {
+    font-size: 0.8em;
+    color: #666;
+    margin-left: 3px;
+}
+
+/* Group Description */
 .group-info p {
     margin: 5px 0;
     color: #666;
 }
 
+/* Enter Group Button */
 .enter-group {
     color: #007bff;
     text-decoration: none;
