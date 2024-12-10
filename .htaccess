@@ -1,0 +1,9 @@
+# Protect .htaccess file itself
+<Files .htaccess>
+    Require all denied
+</Files>
+
+# Protect .env file
+<Files .env>
+    Require all denied
+</Files>
