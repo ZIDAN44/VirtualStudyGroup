@@ -5,13 +5,15 @@
     margin: 0;
 }
 
+/* Group Item Box */
 .group-item {
     display: flex;
     align-items: center;
+    justify-content: space-between;
     margin-bottom: 20px;
     border: 1px solid #ddd;
     border-radius: 10px;
-    padding: 10px;
+    padding: 15px;
     background-color: #f9f9f9;
     transition: box-shadow 0.3s ease;
 }
@@ -38,6 +40,8 @@
 .group-info {
     display: flex;
     flex-direction: column;
+    flex-grow: 1;
+    margin-right: 15px;
 }
 
 .group-info h4 {
@@ -68,6 +72,32 @@
 
 .enter-group:hover {
     text-decoration: underline;
+}
+
+/* Join Group Button */
+.join-group-form {
+    display: flex;
+    background: none;
+    border: none;
+    box-shadow: none;
+    position: relative;
+}
+
+.join-group-button {
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 1em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.join-group-button:hover {
+    background-color: #0056b3;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
 }
 
 /* Group Header Section */
