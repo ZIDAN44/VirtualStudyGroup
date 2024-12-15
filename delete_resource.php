@@ -29,24 +29,38 @@ try {
     }
     $stmt->close();
 
-    // Fetch the file path from the database
-    $stmt = $conn->prepare("SELECT file_path FROM resources WHERE resource_id = ? AND group_id = ?");
+    // Fetch the file hash and original file name from the database
+    $stmt = $conn->prepare("SELECT file_path, file_name FROM resources WHERE resource_id = ? AND group_id = ?");
     $stmt->bind_param("ii", $resource_id, $group_id);
     $stmt->execute();
-    $stmt->bind_result($file_path);
+    $stmt->bind_result($file_hash, $file_name);
     if (!$stmt->fetch()) {
         throw new Exception("File not found.");
     }
     $stmt->close();
 
+    // Fetch group name for constructing MinIO file path
+    $group_stmt = $conn->prepare("SELECT group_name FROM groups WHERE group_id = ?");
+    $group_stmt->bind_param("i", $group_id);
+    $group_stmt->execute();
+    $group_stmt->bind_result($group_name);
+    if (!$group_stmt->fetch()) {
+        throw new Exception("Group not found.");
+    }
+    $group_stmt->close();
+
+    // Sanitize the group name for use in file paths
+    $sanitizedGroupName = preg_replace('/[^A-Za-z0-9]/', '', $group_name);
+
+    // Construct MinIO file path dynamically using the hash
+    $filePath = "{$sanitizedGroupName}_{$group_id}/res/{$file_hash}";
+
     // Delete the file from MinIO
     $method = "DELETE";
     $date = gmdate('D, d M Y H:i:s T');
-    $resourceName = parse_url($file_path, PHP_URL_PATH);
-    $resourceName = ltrim($resourceName, '/');
 
     // Create the string to sign
-    $stringToSign = "$method\n\n\n$date\n/$resourceName";
+    $stringToSign = "$method\n\n\n$date\n/$minioBucketName/$filePath";
 
     // Generate the signature
     $signature = base64_encode(hash_hmac('sha1', $stringToSign, $minioSecretKey, true));
@@ -59,7 +73,7 @@ try {
 
     // Execute the DELETE request
     $ch = curl_init();
-    curl_setopt($ch, CURLOPT_URL, "$minioHost/$resourceName");
+    curl_setopt($ch, CURLOPT_URL, "$minioHost/$minioBucketName/$filePath");
     curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
     curl_setopt($ch, CURLOPT_HTTPHEADER, $headers);
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -75,7 +89,7 @@ try {
         $update_stmt->execute();
         $update_stmt->close();
 
-        $_SESSION['success_message'] = "File deleted successfully.";
+        $_SESSION['success_message'] = "File '{$file_name}' deleted successfully.";
     } else {
         throw new Exception("Failed to delete file from storage. HTTP Code: $httpCode.");
     }
