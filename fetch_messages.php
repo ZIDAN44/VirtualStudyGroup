@@ -9,6 +9,21 @@ if (!$group_id) {
     exit();
 }
 
+// Fetch group name to dynamically build the file path
+$group_stmt = $conn->prepare("SELECT group_name FROM groups WHERE group_id = ?");
+$group_stmt->bind_param("i", $group_id);
+$group_stmt->execute();
+$group_stmt->bind_result($group_name);
+if (!$group_stmt->fetch()) {
+    echo "Group not found.";
+    exit();
+}
+$group_stmt->close();
+
+// Sanitize the group name for file paths
+$sanitizedGroupName = preg_replace('/[^A-Za-z0-9]/', '', $group_name);
+
+// Query to fetch messages and resources
 $query = "
     SELECT 'message' AS type, m.message_id AS id, u.username, m.message_content AS content, NULL AS path, m.timestamp, NULL AS deleted
     FROM messages m
@@ -40,12 +55,15 @@ while ($row = $result->fetch_assoc()) {
         // Display chat message
         echo "<div><strong>{$username}:</strong> {$content} <small>({$timestamp})</small></div>";
     } elseif ($type === 'resource') {
+        // Construct file path dynamically
+        $fileUrl = "{$minioHost}/{$minioBucketName}/{$sanitizedGroupName}_{$group_id}/res/{$path}";
+
         // Display resource with optional delete button
         if ($deleted) {
             echo "<div><strong>{$username}:</strong> <em>(!) This file was deleted!</em> <small>({$timestamp})</small></div>";
         } else {
             echo "<div><strong>{$username}:</strong> 
-                    <a href='{$path}' target='_blank'>{$content}</a> 
+                    <a href='{$fileUrl}' target='_blank'>{$content}</a> 
                     <small>({$timestamp})</small>
                   </div>
                   <form action='delete_resource.php' method='POST' style='display:inline;'>

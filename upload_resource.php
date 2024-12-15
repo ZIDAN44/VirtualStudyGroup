@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Generate a unique hash for the file
             $fileHash = hash_file('sha256', $filePath);
             $fileExtension = pathinfo($originalFileName, PATHINFO_EXTENSION);
-            $hashedFileName = $fileHash . '.' . $fileExtension;
+            $hashedFileName = $fileHash . ($fileExtension ? '.' . $fileExtension : '');
 
             // Create file name with groupname_id/res as a prefix
             $fileName = $sanitizedGroupName . '_' . $group_id . '/res/' . $hashedFileName;
@@ -74,10 +74,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             curl_close($ch);
 
             if ($httpCode === 200) {
-                // File uploaded successfully; save to database
-                $fileUrl = "$minioHost/$minioBucketName/$fileName";
+                // File uploaded successfully; save only the hash in the database
                 $stmt = $conn->prepare("INSERT INTO resources (group_id, uploaded_by, file_name, file_path) VALUES (?, ?, ?, ?)");
-                $stmt->bind_param("iiss", $group_id, $user_id, $originalFileName, $fileUrl);
+                $stmt->bind_param("iiss", $group_id, $user_id, $originalFileName, $hashedFileName);
                 if (!$stmt->execute()) {
                     throw new Exception("Error saving file info to the database.");
                 }
