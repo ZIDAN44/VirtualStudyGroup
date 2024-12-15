@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
-$group_id = $_GET['group_id'] ?? null;
+$group_id = isset($_GET['group_id']) ? intval($_GET['group_id']) : null;
 
 if (!$group_id) {
     echo "Group not specified.";
@@ -17,7 +17,11 @@ if (!$group_id) {
 }
 
 // Check if the user is a member of this group
-$member_check_stmt = $conn->prepare("SELECT role FROM group_members WHERE user_id = ? AND group_id = ?");
+$member_check_stmt = $conn->prepare("
+    SELECT role 
+    FROM group_members 
+    WHERE user_id = ? AND group_id = ?
+");
 $member_check_stmt->bind_param("ii", $user_id, $group_id);
 $member_check_stmt->execute();
 $member_check_stmt->bind_result($user_role);
@@ -31,19 +35,28 @@ if (!$user_role) {
 }
 
 // Fetch group details
-$group_stmt = $conn->prepare("SELECT group_name, group_picture, description, join_rule FROM groups WHERE group_id = ?");
+$group_stmt = $conn->prepare("
+    SELECT group_name, group_picture, description, join_rule 
+    FROM groups 
+    WHERE group_id = ?
+");
 $group_stmt->bind_param("i", $group_id);
 $group_stmt->execute();
 $group_stmt->bind_result($group_name, $group_picture, $description, $join_rule);
 $group_stmt->fetch();
 $group_stmt->close();
 
+if (!$group_name) {
+    echo "Group not found.";
+    exit();
+}
+
 // Fallback to dummy image if group_picture is empty
 $group_picture = !empty($group_picture) 
-    ? htmlspecialchars($group_picture) 
-    : $dummyGPImage;
+    ? htmlspecialchars($group_picture, ENT_QUOTES, 'UTF-8') 
+    : htmlspecialchars($dummyGPImage, ENT_QUOTES, 'UTF-8');
 
-// Fetch permissions for the current user if Co-Admin
+// Fetch permissions for Co-Admin
 $coadmin_permissions = [];
 if ($user_role === 'Co-Admin') {
     $permissions_stmt = $conn->prepare("
@@ -75,7 +88,7 @@ $members = $members_stmt->get_result();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Group Settings - <?php echo htmlspecialchars($group_name); ?></title>
+    <title>Group Settings - <?php echo htmlspecialchars($group_name, ENT_QUOTES, 'UTF-8'); ?></title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/group_style.css">
 </head>
@@ -84,34 +97,31 @@ $members = $members_stmt->get_result();
 
     <!-- Group Header Section -->
     <div class="group-header">
-        <img src="<?php echo $group_picture; ?>" alt="<?php echo htmlspecialchars($group_name); ?> Thumbnail" class="group-header-thumbnail">
-        <h2>
-            <?php echo htmlspecialchars($group_name); ?>
-        </h2>
+        <img src="<?php echo $group_picture; ?>" alt="<?php echo htmlspecialchars($group_name, ENT_QUOTES, 'UTF-8'); ?> Thumbnail" class="group-header-thumbnail">
+        <h2><?php echo htmlspecialchars($group_name, ENT_QUOTES, 'UTF-8'); ?></h2>
     </div>
 
     <!-- Success/Error Messages -->
     <?php if (isset($_SESSION['success_message'])): ?>
-        <p style="color: green;"><?php echo $_SESSION['success_message']; unset($_SESSION['success_message']); ?></p>
+        <p style="color: green;"><?php echo htmlspecialchars($_SESSION['success_message'], ENT_QUOTES, 'UTF-8'); unset($_SESSION['success_message']); ?></p>
     <?php endif; ?>
     <?php if (isset($_SESSION['error_message'])): ?>
-        <p style="color: red;"><?php echo $_SESSION['error_message']; unset($_SESSION['error_message']); ?></p>
+        <p style="color: red;"><?php echo htmlspecialchars($_SESSION['error_message'], ENT_QUOTES, 'UTF-8'); unset($_SESSION['error_message']); ?></p>
     <?php endif; ?>
 
     <!-- Group Details Section -->
     <h3>Group Details</h3>
-    <p><strong>Group Name:</strong> <?php echo htmlspecialchars($group_name); ?></p>
-    <p><strong>Description:</strong> <?php echo htmlspecialchars($description); ?></p>
+    <p><strong>Group Name:</strong> <?php echo htmlspecialchars($group_name, ENT_QUOTES, 'UTF-8'); ?></p>
+    <p><strong>Description:</strong> <?php echo htmlspecialchars($description, ENT_QUOTES, 'UTF-8'); ?></p>
     <p><strong>Join Rule:</strong> <?php echo $join_rule === 'auto' ? 'Anyone can join directly' : 'Admin approval required'; ?></p>
 
-    <!-- Group Members Section (Visible to All Members) -->
+    <!-- Group Members Section -->
     <h3>Group Members</h3>
     <ul>
         <?php while ($member = $members->fetch_assoc()): ?>
             <li>
-                <?php echo htmlspecialchars($member['username']) . ' (' . htmlspecialchars($member['role']) . ')'; ?>
+                <?php echo htmlspecialchars($member['username'], ENT_QUOTES, 'UTF-8') . ' (' . htmlspecialchars($member['role'], ENT_QUOTES, 'UTF-8') . ')'; ?>
                 <?php if ($user_role === 'Admin' && $member['role'] === 'Co-Admin'): ?>
-                    <!-- Link to Manage Permissions for Co-Admins -->
                     <a href="manage_permissions.php?group_id=<?php echo $group_id; ?>&user_id=<?php echo $member['user_id']; ?>">Manage Permissions</a>
                 <?php endif; ?>
             </li>
@@ -151,11 +161,11 @@ $members = $members_stmt->get_result();
 
     <!-- Leave Group Button -->
     <form action="leave_group.php" method="POST">
-        <input type="hidden" name="group_id" value="<?php echo $group_id; ?>">
+        <input type="hidden" name="group_id" value="<?php echo htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8'); ?>">
         <button type="submit">Leave Group</button>
     </form>
 
-    <p><a href="group.php?group_id=<?php echo $group_id; ?>">Back to Group</a></p>
+    <p><a href="group.php?group_id=<?php echo htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8'); ?>">Back to Group</a></p>
 
     <?php include 'includes/footer.php'; ?>
 </body>
@@ -163,4 +173,5 @@ $members = $members_stmt->get_result();
 
 <?php
 $members_stmt->close();
+$conn->close();
 ?>

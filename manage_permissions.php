@@ -8,12 +8,13 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-$user_id = $_SESSION['user_id'];
-$group_id = $_GET['group_id'] ?? null;
-$coadmin_id = $_GET['user_id'] ?? null;
+$user_id = intval($_SESSION['user_id']);
+$group_id = isset($_GET['group_id']) ? intval($_GET['group_id']) : null;
+$coadmin_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : null;
 
 if (!$group_id || !$coadmin_id) {
-    echo "Group or user not specified.";
+    $_SESSION['error_message'] = "Group or user not specified.";
+    header("Location: dashboard.php");
     exit();
 }
 
@@ -39,15 +40,17 @@ $permissions_stmt = $conn->prepare("
 ");
 $permissions_stmt->bind_param("ii", $group_id, $coadmin_id);
 $permissions_stmt->execute();
-$permissions_result = $permissions_stmt->get_result();
-$permissions = $permissions_result->fetch_assoc();
+$permissions_stmt->bind_result(
+    $can_edit_group_info,
+    $can_manage_join_requests,
+    $can_manage_group_members,
+    $can_manage_ban_list
+);
+if (!$permissions_stmt->fetch()) {
+    // Default permissions if no entry exists
+    $can_edit_group_info = $can_manage_join_requests = $can_manage_group_members = $can_manage_ban_list = 0;
+}
 $permissions_stmt->close();
-
-// Default permissions if none exist
-$can_edit_group_info = $permissions['can_edit_group_info'] ?? 0;
-$can_manage_join_requests = $permissions['can_manage_join_requests'] ?? 0;
-$can_manage_group_members = $permissions['can_manage_group_members'] ?? 0;
-$can_manage_ban_list = $permissions['can_manage_ban_list'] ?? 0;
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -56,7 +59,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $manage_members = isset($_POST['can_manage_group_members']) ? 1 : 0;
     $manage_bans = isset($_POST['can_manage_ban_list']) ? 1 : 0;
 
-    // Insert or update permissions
+    // Insert or update permissions securely
     $upsert_stmt = $conn->prepare("
         INSERT INTO coadmin_permissions (group_id, user_id, can_edit_group_info, can_manage_join_requests, can_manage_group_members, can_manage_ban_list)
         VALUES (?, ?, ?, ?, ?, ?)
@@ -67,14 +70,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             can_manage_ban_list = VALUES(can_manage_ban_list)
     ");
     $upsert_stmt->bind_param("iiiiii", $group_id, $coadmin_id, $edit_info, $manage_requests, $manage_members, $manage_bans);
-    if ($upsert_stmt->execute()) {
-        $_SESSION['success_message'] = "Permissions updated successfully!";
-        header("Location: group_settings.php?group_id=$group_id");
-        exit();
-    } else {
-        $_SESSION['error_message'] = "Failed to update permissions.";
+
+    try {
+        if ($upsert_stmt->execute()) {
+            $_SESSION['success_message'] = "Permissions updated successfully!";
+        } else {
+            throw new Exception("Failed to update permissions.");
+        }
+    } catch (Exception $e) {
+        $_SESSION['error_message'] = htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
     }
     $upsert_stmt->close();
+    header("Location: group_settings.php?group_id=$group_id");
+    exit();
 }
 ?>
 
@@ -93,13 +101,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <!-- Success/Error Messages -->
     <?php if (isset($_SESSION['success_message'])): ?>
-        <p style="color: green;"><?php echo $_SESSION['success_message']; unset($_SESSION['success_message']); ?></p>
+        <p style="color: green;"><?php echo htmlspecialchars($_SESSION['success_message'], ENT_QUOTES, 'UTF-8'); unset($_SESSION['success_message']); ?></p>
     <?php endif; ?>
     <?php if (isset($_SESSION['error_message'])): ?>
-        <p style="color: red;"><?php echo $_SESSION['error_message']; unset($_SESSION['error_message']); ?></p>
+        <p style="color: red;"><?php echo htmlspecialchars($_SESSION['error_message'], ENT_QUOTES, 'UTF-8'); unset($_SESSION['error_message']); ?></p>
     <?php endif; ?>
 
-    <form action="manage_permissions.php?group_id=<?php echo $group_id; ?>&user_id=<?php echo $coadmin_id; ?>" method="POST">
+    <form action="manage_permissions.php?group_id=<?php echo htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8'); ?>&user_id=<?php echo htmlspecialchars($coadmin_id, ENT_QUOTES, 'UTF-8'); ?>" method="POST">
         <label>
             <input type="checkbox" name="can_edit_group_info" <?php echo $can_edit_group_info ? 'checked' : ''; ?>>
             Can Edit Group Information
@@ -119,7 +127,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <button type="submit">Save Permissions</button>
     </form>
 
-    <p><a href="group_settings.php?group_id=<?php echo $group_id; ?>">Back to Settings</a></p>
+    <p><a href="group_settings.php?group_id=<?php echo htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8'); ?>">Back to Settings</a></p>
 
     <?php include 'includes/footer.php'; ?>
 </body>

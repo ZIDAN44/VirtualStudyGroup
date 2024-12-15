@@ -2,15 +2,14 @@
 session_start();
 include 'config.php';
 
-$group_id = $_GET['group_id'] ?? null;
+$group_id = isset($_GET['group_id']) ? intval($_GET['group_id']) : null;
 
 if (!$group_id) {
     echo "Group not specified.";
     exit();
 }
 
-// Fetch both chat messages and resources, ordered by their timestamp
-$stmt = $conn->prepare("
+$query = "
     SELECT 'message' AS type, m.message_id AS id, u.username, m.message_content AS content, NULL AS path, m.timestamp, NULL AS deleted
     FROM messages m
     JOIN users u ON m.user_id = u.user_id
@@ -21,24 +20,39 @@ $stmt = $conn->prepare("
     JOIN users u ON r.uploaded_by = u.user_id
     WHERE r.group_id = ?
     ORDER BY timestamp ASC
-");
+";
+
+$stmt = $conn->prepare($query);
 $stmt->bind_param("ii", $group_id, $group_id);
 $stmt->execute();
 $result = $stmt->get_result();
 
 while ($row = $result->fetch_assoc()) {
-    if ($row['type'] === 'message') {
-        echo "<div><strong>" . htmlspecialchars($row['username']) . ":</strong> " . htmlspecialchars($row['content']) . " <small>(" . $row['timestamp'] . ")</small></div>";
-    } elseif ($row['type'] === 'resource') {
-        if ($row['deleted']) {
-            echo "<div><strong>" . htmlspecialchars($row['username']) . ":</strong> <em>(!) This file was deleted!</em> <small>(" . $row['timestamp'] . ")</small></div>";
+    $type = $row['type'];
+    $username = htmlspecialchars($row['username'], ENT_QUOTES, 'UTF-8');
+    $content = htmlspecialchars($row['content'], ENT_QUOTES, 'UTF-8');
+    $timestamp = htmlspecialchars($row['timestamp'], ENT_QUOTES, 'UTF-8');
+    $path = $row['path'] ? htmlspecialchars($row['path'], ENT_QUOTES, 'UTF-8') : null;
+    $id = htmlspecialchars($row['id'], ENT_QUOTES, 'UTF-8');
+    $deleted = $row['deleted'];
+
+    if ($type === 'message') {
+        // Display chat message
+        echo "<div><strong>{$username}:</strong> {$content} <small>({$timestamp})</small></div>";
+    } elseif ($type === 'resource') {
+        // Display resource with optional delete button
+        if ($deleted) {
+            echo "<div><strong>{$username}:</strong> <em>(!) This file was deleted!</em> <small>({$timestamp})</small></div>";
         } else {
-            echo "<div><strong>" . htmlspecialchars($row['username']) . ":</strong> <a href='" . htmlspecialchars($row['path']) . "' target='_blank'>" . htmlspecialchars($row['content']) . "</a> <small>(" . $row['timestamp'] . ")</small>";
-            echo "<form action='delete_resource.php' method='POST' style='display:inline;'>
-                    <input type='hidden' name='resource_id' value='" . $row['id'] . "'>
-                    <input type='hidden' name='group_id' value='" . $group_id . "'>
-                    <button type='submit'>Delete</button>
-                  </form></div>";
+            echo "<div><strong>{$username}:</strong> 
+                    <a href='{$path}' target='_blank'>{$content}</a> 
+                    <small>({$timestamp})</small>
+                  </div>
+                  <form action='delete_resource.php' method='POST' style='display:inline;'>
+                      <input type='hidden' name='resource_id' value='{$id}'>
+                      <input type='hidden' name='group_id' value='{$group_id}'>
+                      <button type='submit'>Delete</button>
+                  </form>";
         }
     }
 }

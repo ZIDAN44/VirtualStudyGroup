@@ -8,23 +8,22 @@ if (!isset($_SESSION['user_id'])) {
     exit();
 }
 
-// Retrieve Co-Admins from the session
+// Validate Co-Admins session
 if (!isset($_SESSION['group_id']) || !isset($_SESSION['coadmins'])) {
     $_SESSION['error_message'] = "Invalid operation. Please try again.";
     header("Location: dashboard.php");
     exit();
 }
 
-$group_id = $_SESSION['group_id'];
+$group_id = intval($_SESSION['group_id']);
 $coadmins = $_SESSION['coadmins'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $new_admin_id = $_POST['new_admin_id'];
+    $new_admin_id = intval($_POST['new_admin_id']);
     $user_id = $_SESSION['user_id'];
 
-    // Start a transaction
+    // Start transaction
     $conn->begin_transaction();
-
     try {
         // Promote the selected Co-Admin to Admin
         $promote_stmt = $conn->prepare("UPDATE group_members SET role = 'Admin' WHERE user_id = ? AND group_id = ?");
@@ -46,22 +45,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $leave_stmt = $conn->prepare("DELETE FROM group_members WHERE user_id = ? AND group_id = ?");
         $leave_stmt->bind_param("ii", $user_id, $group_id);
         if (!$leave_stmt->execute()) {
-            throw new Exception("Failed to leave the group. Please try again.");
+            throw new Exception("Failed to leave the group.");
         }
         $leave_stmt->close();
 
-        // Commit the transaction
         $conn->commit();
 
         $_SESSION['success_message'] = "You have successfully left the group, and a new Admin has been appointed.";
-        unset($_SESSION['group_id']);
-        unset($_SESSION['coadmins']);
+        unset($_SESSION['group_id'], $_SESSION['coadmins']);
         header("Location: dashboard.php");
         exit();
     } catch (Exception $e) {
-        // Rollback the transaction on failure
         $conn->rollback();
-
         $_SESSION['error_message'] = $e->getMessage();
         header("Location: new_admin.php");
         exit();
@@ -81,15 +76,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <h2>Select a New Admin</h2>
 
     <?php if (isset($_SESSION['error_message'])): ?>
-        <p style="color: red;"><?php echo $_SESSION['error_message']; unset($_SESSION['error_message']); ?></p>
+        <p style="color: red;"><?php echo htmlspecialchars($_SESSION['error_message'], ENT_QUOTES, 'UTF-8'); unset($_SESSION['error_message']); ?></p>
     <?php endif; ?>
 
     <form action="new_admin.php" method="POST">
         <label for="new_admin_id">Choose a Co-Admin to promote:</label>
         <select name="new_admin_id" id="new_admin_id" required>
             <?php foreach ($coadmins as $coadmin): ?>
-                <option value="<?php echo $coadmin['user_id']; ?>">
-                    <?php echo htmlspecialchars($coadmin['username']); ?>
+                <option value="<?php echo htmlspecialchars($coadmin['user_id'], ENT_QUOTES, 'UTF-8'); ?>">
+                    <?php echo htmlspecialchars($coadmin['username'], ENT_QUOTES, 'UTF-8'); ?>
                 </option>
             <?php endforeach; ?>
         </select>

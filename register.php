@@ -5,10 +5,11 @@ include 'config.php';
 // Fetch available time zones
 $timeZones = timezone_identifiers_list();
 
-// Fetch geo locations (mocking online data)
+// Fetch geo locations (mocked for this example)
 $geoLocations = ["Bangladesh", "USA", "Canada", "Germany", "Australia"];
 
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    // Sanitize and validate inputs
     $username = trim($_POST['username']);
     $email = filter_var($_POST['email'], FILTER_SANITIZE_EMAIL);
     $password = $_POST['password'];
@@ -20,87 +21,97 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $date_of_birth = $_POST['date_of_birth'] ?? null;
     $gender = $_POST['gender'] ?? null;
     $geo_location = $_POST['geo_location'] ?? null;
-    $hashed_password = password_hash($password, PASSWORD_BCRYPT);
 
     // Validate required fields
     if (empty($username) || empty($email) || empty($password) || empty($phone_number)) {
-        die("Username, email, password, and phone number are required.");
+        $_SESSION['error_message'] = "Username, email, password, and phone number are required.";
+        header("Location: register.php");
+        exit();
     }
 
-    // Begin transaction
+    // Hash the password securely
+    $hashed_password = password_hash($password, PASSWORD_BCRYPT);
+
+    // Start database transaction
     $conn->begin_transaction();
 
     try {
-        // Check if username, email, or phone number already exists
-        $check_user = $conn->prepare("SELECT * FROM users WHERE username = ? OR email = ? OR phone_number = ?");
-        $check_user->bind_param("sss", $username, $email, $phone_number);
-        $check_user->execute();
-        $result = $check_user->get_result();
+        // Check for existing user by username, email, or phone number
+        $check_user_stmt = $conn->prepare("
+            SELECT 1 FROM users WHERE username = ? OR email = ? OR phone_number = ?
+        ");
+        $check_user_stmt->bind_param("sss", $username, $email, $phone_number);
+        $check_user_stmt->execute();
+        $check_user_stmt->store_result();
 
-        if ($result->num_rows > 0) {
-            throw new Exception("Username, email, or phone number already exists. Please choose a different one.");
+        if ($check_user_stmt->num_rows > 0) {
+            throw new Exception("Username, email, or phone number already exists.");
         }
+        $check_user_stmt->close();
 
-        // Insert new user into the database
-        $stmt = $conn->prepare(
-            "INSERT INTO users (username, email, password, phone_number, full_name, status_message, language_pref, time_zone, date_of_birth, gender, geo_location, created_at, updated_at) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())"
-        );
-        $stmt->bind_param(
+        // Insert the new user into the database
+        $insert_user_stmt = $conn->prepare("
+            INSERT INTO users 
+            (username, email, password, phone_number, full_name, status_message, language_pref, time_zone, date_of_birth, gender, geo_location, created_at, updated_at) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+        ");
+        $insert_user_stmt->bind_param(
             "sssssssssss",
-            $username,
-            $email,
-            $hashed_password,
-            $phone_number,
-            $full_name,
-            $status_message,
-            $language_pref,
-            $time_zone,
-            $date_of_birth,
-            $gender,
+            $username, 
+            $email, 
+            $hashed_password, 
+            $phone_number, 
+            $full_name, 
+            $status_message, 
+            $language_pref, 
+            $time_zone, 
+            $date_of_birth, 
+            $gender, 
             $geo_location
         );
 
-        if (!$stmt->execute()) {
-            throw new Exception("Error inserting user: " . $stmt->error);
+        if (!$insert_user_stmt->execute()) {
+            throw new Exception("Error inserting user: " . $insert_user_stmt->error);
         }
 
-        // Get the newly inserted user's ID
-        $user_id = $conn->insert_id;
+        // Get the inserted user's ID
+        $user_id = $insert_user_stmt->insert_id;
+        $insert_user_stmt->close();
 
-        // Handle profile picture upload if provided
-        if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] == 0) {
+        // Handle profile picture upload
+        if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] === 0) {
             include 'upload_profile_pic.php';
-            $fileUrl = uploadProfilePicture($_FILES['profile_picture'], $user_id);
 
+            $fileUrl = uploadProfilePicture($_FILES['profile_picture'], $user_id);
             if (!$fileUrl) {
                 throw new Exception("Failed to upload profile picture.");
             }
 
-            // Update user record with profile picture URL
-            $update_profile_pic = $conn->prepare("UPDATE users SET profile_picture = ? WHERE user_id = ?");
-            $update_profile_pic->bind_param("si", $fileUrl, $user_id);
-            if (!$update_profile_pic->execute()) {
-                throw new Exception("Error updating profile picture: " . $update_profile_pic->error);
+            // Update the user's profile picture URL
+            $update_pic_stmt = $conn->prepare("UPDATE users SET profile_picture = ? WHERE user_id = ?");
+            $update_pic_stmt->bind_param("si", $fileUrl, $user_id);
+            if (!$update_pic_stmt->execute()) {
+                throw new Exception("Error updating profile picture: " . $update_pic_stmt->error);
             }
+            $update_pic_stmt->close();
         }
 
-        // Commit transaction
+        // Commit the transaction
         $conn->commit();
 
-        // Set session and redirect
+        // Set session and redirect to the dashboard
         $_SESSION['user_id'] = $user_id;
         $_SESSION['username'] = $username;
+        $_SESSION['success_message'] = "Registration successful!";
         header("Location: dashboard.php");
         exit();
     } catch (Exception $e) {
-        // Rollback transaction on failure
+        // Rollback the transaction on error
         $conn->rollback();
-        echo "Error: " . $e->getMessage();
+        $_SESSION['error_message'] = $e->getMessage();
+        header("Location: register.php");
+        exit();
     } finally {
-        // Close resources
-        $check_user->close();
-        $stmt->close();
         $conn->close();
     }
 }
@@ -116,6 +127,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </head>
 <body>
     <h2>Register</h2>
+
+    <!-- Display success or error messages -->
+    <?php if (isset($_SESSION['error_message'])): ?>
+        <p style="color: red;"><?php echo htmlspecialchars($_SESSION['error_message'], ENT_QUOTES, 'UTF-8'); unset($_SESSION['error_message']); ?></p>
+    <?php endif; ?>
+
     <form action="register.php" method="POST" enctype="multipart/form-data">
         <label for="username">Username:</label>
         <input type="text" name="username" required>

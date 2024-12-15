@@ -9,18 +9,19 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
-$group_id = $_GET['group_id'] ?? null;
+$group_id = isset($_GET['group_id']) ? intval($_GET['group_id']) : null;
 
 if (!$group_id) {
     echo "Group not specified.";
     exit();
 }
 
-// Check if the user is an Admin or a Co-Admin with the required permission
+// Check if the user is an Admin or a Co-Admin with permission
 $permissions_stmt = $conn->prepare("
     SELECT gm.role, cp.can_manage_ban_list 
     FROM group_members gm
-    LEFT JOIN coadmin_permissions cp ON gm.user_id = cp.user_id AND gm.group_id = cp.group_id
+    LEFT JOIN coadmin_permissions cp 
+    ON gm.user_id = cp.user_id AND gm.group_id = cp.group_id
     WHERE gm.user_id = ? AND gm.group_id = ?
 ");
 $permissions_stmt->bind_param("ii", $user_id, $group_id);
@@ -63,10 +64,10 @@ $banned_members = $banned_stmt->get_result();
 
     <!-- Success/Error Messages -->
     <?php if (isset($_SESSION['success_message'])): ?>
-        <p style="color: green;"><?php echo $_SESSION['success_message']; unset($_SESSION['success_message']); ?></p>
+        <p style="color: green;"><?php echo htmlspecialchars($_SESSION['success_message'], ENT_QUOTES, 'UTF-8'); unset($_SESSION['success_message']); ?></p>
     <?php endif; ?>
     <?php if (isset($_SESSION['error_message'])): ?>
-        <p style="color: red;"><?php echo $_SESSION['error_message']; unset($_SESSION['error_message']); ?></p>
+        <p style="color: red;"><?php echo htmlspecialchars($_SESSION['error_message'], ENT_QUOTES, 'UTF-8'); unset($_SESSION['error_message']); ?></p>
     <?php endif; ?>
 
     <?php if ($banned_members->num_rows > 0): ?>
@@ -82,14 +83,14 @@ $banned_members = $banned_stmt->get_result();
             <tbody>
                 <?php while ($banned = $banned_members->fetch_assoc()): ?>
                     <tr>
-                        <td><?php echo htmlspecialchars($banned['banned_user']); ?></td>
-                        <td><?php echo htmlspecialchars($banned['banned_by_user']); ?></td>
-                        <td><?php echo $banned['banned_at']; ?></td>
+                        <td><?php echo htmlspecialchars($banned['banned_user'], ENT_QUOTES, 'UTF-8'); ?></td>
+                        <td><?php echo htmlspecialchars($banned['banned_by_user'], ENT_QUOTES, 'UTF-8'); ?></td>
+                        <td><?php echo htmlspecialchars($banned['banned_at'], ENT_QUOTES, 'UTF-8'); ?></td>
                         <td>
                             <form action="unban_member.php" method="POST" style="display:inline;">
-                                <input type="hidden" name="user_id" value="<?php echo $banned['user_id']; ?>">
-                                <input type="hidden" name="group_id" value="<?php echo $group_id; ?>">
-                                <button type="submit" onclick="return confirm('Are you sure you want to unban <?php echo htmlspecialchars($banned['banned_user']); ?>?');">Unban</button>
+                                <input type="hidden" name="user_id" value="<?php echo htmlspecialchars($banned['user_id'], ENT_QUOTES, 'UTF-8'); ?>">
+                                <input type="hidden" name="group_id" value="<?php echo htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8'); ?>">
+                                <button type="submit" onclick="return confirm('Are you sure you want to unban <?php echo htmlspecialchars($banned['banned_user'], ENT_QUOTES, 'UTF-8'); ?>?');">Unban</button>
                             </form>
                         </td>
                     </tr>
@@ -100,10 +101,13 @@ $banned_members = $banned_stmt->get_result();
         <p>No banned members in this group.</p>
     <?php endif; ?>
 
-    <p><a href="group_settings.php?group_id=<?php echo $group_id; ?>">Back to Settings</a></p>
+    <p><a href="group_settings.php?group_id=<?php echo htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8'); ?>">Back to Settings</a></p>
 
     <?php include 'includes/footer.php'; ?>
 </body>
 </html>
 
-<?php $banned_stmt->close(); ?>
+<?php
+$banned_stmt->close();
+$conn->close();
+?>

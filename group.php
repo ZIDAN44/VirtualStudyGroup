@@ -9,15 +9,19 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 $user_id = $_SESSION['user_id'];
-$group_id = $_GET['group_id'] ?? null;
+$group_id = isset($_GET['group_id']) ? intval($_GET['group_id']) : null;
 
 if (!$group_id) {
-    echo "Group not specified.";
+    echo "Invalid or missing group ID.";
     exit();
 }
 
 // Check if the user is a member of this group and get their role
-$member_check_stmt = $conn->prepare("SELECT role FROM group_members WHERE user_id = ? AND group_id = ?");
+$member_check_stmt = $conn->prepare("
+    SELECT role 
+    FROM group_members 
+    WHERE user_id = ? AND group_id = ?
+");
 $member_check_stmt->bind_param("ii", $user_id, $group_id);
 $member_check_stmt->execute();
 $member_check_stmt->bind_result($user_role);
@@ -31,7 +35,11 @@ if (!$user_role) {
 }
 
 // Fetch group name and picture
-$group_stmt = $conn->prepare("SELECT group_name, group_picture FROM groups WHERE group_id = ?");
+$group_stmt = $conn->prepare("
+    SELECT group_name, group_picture 
+    FROM groups 
+    WHERE group_id = ?
+");
 $group_stmt->bind_param("i", $group_id);
 $group_stmt->execute();
 $group_stmt->bind_result($group_name, $group_picture);
@@ -45,8 +53,8 @@ if (!$group_name) {
 
 // Fallback to dummy image if group_picture is empty
 $group_picture = !empty($group_picture) 
-    ? htmlspecialchars($group_picture) 
-    : $dummyGPImage;
+    ? htmlspecialchars($group_picture, ENT_QUOTES, 'UTF-8') 
+    : htmlspecialchars($dummyGPImage, ENT_QUOTES, 'UTF-8');
 ?>
 
 <!DOCTYPE html>
@@ -54,7 +62,7 @@ $group_picture = !empty($group_picture)
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($group_name); ?> - Virtual Study Group</title>
+    <title><?php echo htmlspecialchars($group_name, ENT_QUOTES, 'UTF-8'); ?> - Virtual Study Group</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/group_style.css">
 </head>
@@ -63,10 +71,10 @@ $group_picture = !empty($group_picture)
 
     <!-- Group Header Section -->
     <div class="group-header">
-        <img src="<?php echo $group_picture; ?>" alt="<?php echo htmlspecialchars($group_name); ?> Thumbnail" class="group-header-thumbnail">
+        <img src="<?php echo $group_picture; ?>" alt="<?php echo htmlspecialchars($group_name, ENT_QUOTES, 'UTF-8'); ?> Thumbnail" class="group-header-thumbnail">
         <h2>
-            <a href="group_settings.php?group_id=<?php echo $group_id; ?>">
-                <?php echo htmlspecialchars($group_name); ?>
+            <a href="group_settings.php?group_id=<?php echo htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8'); ?>">
+                <?php echo htmlspecialchars($group_name, ENT_QUOTES, 'UTF-8'); ?>
             </a>
         </h2>
     </div>
@@ -84,7 +92,7 @@ $group_picture = !empty($group_picture)
     <!-- Upload Resource Button -->
     <button id="upload-btn" style="margin-top: 20px;">Upload a Resource</button>
     <form id="upload-form" action="upload_resource.php" method="POST" enctype="multipart/form-data" style="display: none;">
-        <input type="hidden" name="group_id" value="<?php echo $group_id; ?>">
+        <input type="hidden" name="group_id" value="<?php echo htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8'); ?>">
         <input type="file" id="resource-input" name="resource" style="display: none;" required>
     </form>
 

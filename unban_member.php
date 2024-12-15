@@ -8,15 +8,21 @@ if (!isset($_SESSION['user_id'])) {
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $user_id_to_unban = $_POST['user_id'];
-    $group_id = $_POST['group_id'];
+    $user_id_to_unban = isset($_POST['user_id']) ? intval($_POST['user_id']) : null;
+    $group_id = isset($_POST['group_id']) ? intval($_POST['group_id']) : null;
     $user_id = $_SESSION['user_id'];
 
-    // Check if the user is an Admin or a Co-Admin with the required permission
+    if (!$user_id_to_unban || !$group_id) {
+        echo "Invalid input.";
+        exit();
+    }
+
+    // Check if the user is an Admin or a Co-Admin with permission
     $permissions_stmt = $conn->prepare("
         SELECT gm.role, cp.can_manage_ban_list 
         FROM group_members gm
-        LEFT JOIN coadmin_permissions cp ON gm.user_id = cp.user_id AND gm.group_id = cp.group_id
+        LEFT JOIN coadmin_permissions cp 
+        ON gm.user_id = cp.user_id AND gm.group_id = cp.group_id
         WHERE gm.user_id = ? AND gm.group_id = ?
     ");
     $permissions_stmt->bind_param("ii", $user_id, $group_id);

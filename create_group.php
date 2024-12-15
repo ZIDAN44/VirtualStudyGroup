@@ -18,28 +18,32 @@ function generateUniqueGroupHandle($conn, $group_name) {
         $stmt = $conn->prepare("SELECT 1 FROM groups WHERE group_handle = ?");
         $stmt->bind_param("s", $unique_handle);
         $stmt->execute();
-        $result = $stmt->get_result();
-    } while ($result->num_rows > 0);
+        $stmt->store_result();
+        $exists = $stmt->num_rows > 0;
+        $stmt->close();
+    } while ($exists);
 
-    $stmt->close();
     return $unique_handle;
 }
 
 // Handle form submission
-if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $group_name = trim($_POST['group_name']);
     $description = trim($_POST['description'] ?? '');
     $created_by = $_SESSION['user_id'];
     $max_members = isset($_POST['max_members']) && $_POST['max_members'] !== '' ? (int)$_POST['max_members'] : 15;
-    $join_rule = $_POST['join_rule'] ?? 'auto';
-    $rules = $_POST['rules'] ?? null;
+    $join_rule = in_array($_POST['join_rule'], ['auto', 'manual']) ? $_POST['join_rule'] : 'auto';
+    $rules = trim($_POST['rules'] ?? '');
 
     // Validate required fields
     if (empty($group_name)) {
         $error_message = "Group name is required.";
+    } elseif (strlen($group_name) > 255) {
+        $error_message = "Group name must not exceed 255 characters.";
     } else {
         // Begin transaction
         $conn->begin_transaction();
+        $stmt = null;
         $member_stmt = null;
 
         try {
@@ -47,10 +51,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $group_handle = generateUniqueGroupHandle($conn, $group_name);
 
             // Insert the new group into the groups table
-            $stmt = $conn->prepare(
-                "INSERT INTO groups (group_name, group_handle, description, created_by, max_members, join_rule, rules, current_members, created_at, updated_at) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, 1, NOW(), NOW())"
-            );
+            $stmt = $conn->prepare("
+                INSERT INTO groups (group_name, group_handle, description, created_by, max_members, join_rule, rules, current_members, created_at, updated_at) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, 1, NOW(), NOW())
+            ");
             $stmt->bind_param("sssisss", $group_name, $group_handle, $description, $created_by, $max_members, $join_rule, $rules);
 
             if (!$stmt->execute()) {
@@ -79,10 +83,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $conn->rollback();
             $error_message = $e->getMessage();
         } finally {
-            if (isset($stmt) && $stmt !== null) {
+            if ($stmt !== null) {
                 $stmt->close();
             }
-            if (isset($member_stmt) && $member_stmt !== null) {
+            if ($member_stmt !== null) {
                 $member_stmt->close();
             }
             $conn->close();
@@ -104,21 +108,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     <h2>Create a Study Group</h2>
 
-    <?php
-    if (isset($error_message)) {
-        echo "<p style='color: red;'>$error_message</p>";
-    }
-    ?>
+    <?php if (isset($error_message)): ?>
+        <p style="color: red;"><?php echo htmlspecialchars($error_message, ENT_QUOTES, 'UTF-8'); ?></p>
+    <?php endif; ?>
 
     <form action="create_group.php" method="POST">
         <label for="group_name">Group Name:</label>
-        <input type="text" name="group_name" required>
+        <input type="text" name="group_name" maxlength="255" required>
 
         <label for="description">Description:</label>
         <textarea name="description" rows="5"></textarea>
 
         <label for="max_members">Maximum Members:</label>
-        <input type="number" name="max_members" placeholder="Leave empty for default limit: 15">
+        <input type="number" name="max_members" min="1" max="1000" placeholder="Default: 15">
 
         <label for="join_rule">Join Rule:</label>
         <select name="join_rule">
