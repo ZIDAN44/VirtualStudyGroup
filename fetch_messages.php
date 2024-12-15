@@ -56,7 +56,8 @@ while ($row = $result->fetch_assoc()) {
         echo "<div><strong>{$username}:</strong> {$content} <small>({$timestamp})</small></div>";
     } elseif ($type === 'resource') {
         // Construct file path dynamically
-        $fileUrl = "{$minioHost}/{$minioBucketName}/{$sanitizedGroupName}_{$group_id}/res/{$path}";
+        $fileUrl = "{$minioHost}/{$minioBucketName}/{$sanitizedGroupName}_{$group_id}/res/{$path}"
+                 . "?response-content-disposition=" . rawurlencode("attachment; filename=\"{$content}\"");
 
         // Display resource with optional delete button
         if ($deleted) {
