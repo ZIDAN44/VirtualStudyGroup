@@ -30,12 +30,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (isset($_FILES['resource']) && $_FILES['resource']['error'] === UPLOAD_ERR_OK) {
             $file = $_FILES['resource'];
             $originalFileName = basename($file['name']);
-            $encodedFileName = rawurlencode($originalFileName);
             $filePath = $file['tmp_name'];
             $fileContents = file_get_contents($filePath);
 
+            // Generate a unique hash for the file
+            $fileHash = hash_file('sha256', $filePath);
+            $fileExtension = pathinfo($originalFileName, PATHINFO_EXTENSION);
+            $hashedFileName = $fileHash . '.' . $fileExtension;
+
             // Create file name with groupname_id/res as a prefix
-            $fileName = $sanitizedGroupName . '_' . $group_id . '/res/' . $encodedFileName;
+            $fileName = $sanitizedGroupName . '_' . $group_id . '/res/' . $hashedFileName;
 
             // MinIO-specific headers
             $method = "PUT";
