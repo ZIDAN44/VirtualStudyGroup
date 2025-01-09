@@ -80,6 +80,121 @@ Send messages as structured JSON. Supported formats:
 
 ---
 
+## Example WebSocket Client
+
+Below is an example HTML page that can be used as a simple WebSocket client to test the `chat_server.php`. Copy the following code into an `.html` file and open it in your browser:
+
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Chat Example</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        #messages {
+            border: 1px solid #ccc;
+            height: 300px;
+            overflow-y: scroll;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+        #messageInput {
+            width: calc(100% - 70px);
+            padding: 5px;
+        }
+        #sendBtn {
+            padding: 6px 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Chat Example</h1>
+    <div>
+        <label for="group_id">Group ID:</label>
+        <input type="text" id="group_id" placeholder="Enter Group ID">
+        <label for="user_id">User ID:</label>
+        <input type="text" id="user_id" placeholder="Enter User ID">
+        <button id="connectBtn">Connect</button>
+    </div>
+    <div id="messages"></div>
+    <div>
+        <input type="text" id="messageInput" placeholder="Type your message here...">
+        <button id="sendBtn">Send</button>
+    </div>
+
+    <script>
+        let socket;
+
+        document.getElementById('connectBtn').addEventListener('click', () => {
+            const groupId = document.getElementById('group_id').value;
+            const userId = document.getElementById('user_id').value;
+
+            if (!groupId || !userId) {
+                alert('Please enter both Group ID and User ID.');
+                return;
+            }
+
+            const wsUrl = `ws://localhost:8080?group_id=${groupId}&user_id=${userId}`;
+            socket = new WebSocket(wsUrl);
+
+            socket.onopen = () => {
+                console.log('Connected to WebSocket server');
+                document.getElementById('messages').innerHTML += `<div>Connected as User ${userId} in Group ${groupId}</div>`;
+            };
+
+            socket.onmessage = (event) => {
+                const message = JSON.parse(event.data);
+                const messagesDiv = document.getElementById('messages');
+                messagesDiv.innerHTML += `<div><strong>${message.type.toUpperCase()}:</strong> ${message.content}</div>`;
+                messagesDiv.scrollTop = messagesDiv.scrollHeight;
+            };
+
+            socket.onclose = () => {
+                console.log('Disconnected from WebSocket server');
+                document.getElementById('messages').innerHTML += `<div>Disconnected</div>`;
+            };
+
+            socket.onerror = (error) => {
+                console.error('WebSocket error:', error);
+                document.getElementById('messages').innerHTML += `<div>Error occurred</div>`;
+            };
+        });
+
+        document.getElementById('sendBtn').addEventListener('click', () => {
+            if (!socket || socket.readyState !== WebSocket.OPEN) {
+                alert('You are not connected to the WebSocket server.');
+                return;
+            }
+
+            const messageInput = document.getElementById('messageInput');
+            const content = messageInput.value;
+
+            if (!content.trim()) {
+                alert('Please enter a message.');
+                return;
+            }
+
+            const groupId = document.getElementById('group_id').value;
+            const message = {
+                type: 'message',
+                group_id: groupId,
+                content: content
+            };
+
+            socket.send(JSON.stringify(message));
+            messageInput.value = '';
+        });
+    </script>
+</body>
+</html>
+```
+
+---
+
 ## Server Logging
 
 - **New Connection**: Logs the user and group information upon connection.
