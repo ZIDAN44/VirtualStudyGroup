@@ -1,0 +1,5 @@
+# Ignore vendor directorie
+vendor/
+
+# Ignore Composer files
+composer.*
