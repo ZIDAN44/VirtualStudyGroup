@@ -46,8 +46,19 @@ $group_stmt->bind_result($group_name, $group_picture);
 $group_stmt->fetch();
 $group_stmt->close();
 
-if (!$group_name) {
-    echo "Group not found.";
+$user_stmt = $conn->prepare("
+    SELECT username 
+    FROM users 
+    WHERE user_id = ?
+");
+$user_stmt->bind_param("i", $user_id);
+$user_stmt->execute();
+$user_stmt->bind_result($username);
+$user_stmt->fetch();
+$user_stmt->close();
+
+if (!$username) {
+    echo "User not found.";
     exit();
 }
 
@@ -89,32 +100,17 @@ $group_picture = !empty($group_picture)
         <button type="submit">Send</button>
     </form>
 
-    <!-- Upload Resource Button -->
-    <button id="upload-btn" style="margin-top: 20px;">Upload a Resource</button>
-    <form id="upload-form" action="upload_resource.php" method="POST" enctype="multipart/form-data" style="display: none;">
-        <input type="hidden" name="group_id" value="<?php echo htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8'); ?>">
-        <input type="file" id="resource-input" name="resource" style="display: none;" required>
-    </form>
+    <!-- Resource Upload Section -->
+    <input type="file" id="resource-input" style="margin-top: 20px;">
+    <button id="upload-btn" style="margin-top: 10px;">Upload Resource</button>
 
     <script src="js/group_chat.js"></script>
     <script>
         const groupId = <?php echo json_encode($group_id); ?>;
-        const userId = <?php echo json_encode($_SESSION['user_id']); ?>;
-
-        // Handle the upload button click
-        document.getElementById('upload-btn').addEventListener('click', function () {
-            document.getElementById('resource-input').click();
-        });
-
-        // Handle file selection and auto-submit
-        document.getElementById('resource-input').addEventListener('change', function () {
-            if (this.files.length > 0) {
-                const confirmUpload = confirm("Do you want to upload this file?");
-                if (confirmUpload) {
-                    document.getElementById('upload-form').submit();
-                }
-            }
-        });
+        const userId = <?php echo json_encode($user_id); ?>;
+        const username = <?php echo json_encode($username); ?>;
+        const groupName = <?php echo json_encode($group_name); ?>;
+        const webSocketUrl = <?php echo json_encode($webSocketUrl); ?>;
     </script>
 
     <?php include 'includes/footer.php'; ?>

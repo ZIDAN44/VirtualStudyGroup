@@ -23,6 +23,9 @@ $minioAccessKey = $_ENV['MINIO_ACCESS_KEY'] ?? '';
 $minioSecretKey = $_ENV['MINIO_SECRET_KEY'] ?? '';
 $minioHost = $_ENV['MINIO_HOST'] ?? '';
 
+// Load WebSocket URL from environment variables
+$webSocketUrl = $_ENV['WEBSOCKET_URL'] ?? '';
+
 // Dummy Group Profile Picture URL
 $dummyGPImage = rtrim($minioHost, '/') . '/' . $minioBucketName . '/Dummy_Pic/Dummy_GProfile.png';
 

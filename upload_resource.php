@@ -4,7 +4,7 @@ require_once 'config.php';
 
 // Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    echo json_encode(["status" => "error", "message" => "Unauthorized"]);
     exit();
 }
 
@@ -77,10 +77,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 // File uploaded successfully; save only the hash in the database
                 $stmt = $conn->prepare("INSERT INTO resources (group_id, uploaded_by, file_name, file_path) VALUES (?, ?, ?, ?)");
                 $stmt->bind_param("iiss", $group_id, $user_id, $originalFileName, $hashedFileName);
-                if (!$stmt->execute()) {
+                if ($stmt->execute()) {
+                    // Generate the full resource URL
+                    $resourceUrl = "$minioHost/$minioBucketName/$fileName";
+
+                    echo json_encode([
+                        "status" => "success",
+                        "message" => "Resource uploaded successfully!",
+                        "file_name" => $originalFileName,
+                        "file_url" => $resourceUrl,
+                        "file_path" => $hashedFileName, // Keep file_path if needed
+                    ]);
+                    exit();
+                } else {
                     throw new Exception("Error saving file info to the database.");
                 }
-                $_SESSION['success_message'] = "Resource uploaded successfully!";
             } else {
                 throw new Exception("Error uploading file to MinIO. HTTP Code: $httpCode.");
             }
@@ -88,10 +99,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("No file uploaded or file upload error.");
         }
     } catch (Exception $e) {
-        $_SESSION['error_message'] = $e->getMessage();
+        echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+        exit();
     }
 }
 
-header("Location: group.php?group_id=" . $group_id);
+echo json_encode(["status" => "error", "message" => "Invalid request."]);
 exit();
 ?>
