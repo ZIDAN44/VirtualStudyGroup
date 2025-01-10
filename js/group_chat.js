@@ -7,14 +7,18 @@ document.addEventListener("DOMContentLoaded", function () {
     const contextMenu = document.getElementById("context-menu");
 
     const appendMessage = (msg) => {
+        const isDeleted = msg.type === "resource" && !msg.file_url;
         const messageHTML = `
-            <div class="message ${msg.type}" data-resource-id="${msg.resource_id || ''}">
-                <strong>${msg.username}:</strong> 
-                ${msg.type === "resource" 
-                    ? `<a href="${msg.file_url || '#'}" target="_blank">${msg.content || 'File'}</a>` 
-                    : msg.content}
-                <small>(${new Date(msg.timestamp).toLocaleString()})</small>
-            </div>`;
+        <div class="message ${msg.type} ${isDeleted ? 'deleted' : ''}" data-resource-id="${msg.resource_id || ''}">
+            <strong>${msg.username}:</strong> 
+            ${msg.type === "resource"
+                ? msg.file_url
+                    ? `<a href="${msg.file_url}" target="_blank">${msg.content || 'File'}</a>`
+                    : `<span>${msg.content || 'File'}</span>`
+                : msg.content
+            }
+            <small>(${new Date(msg.timestamp).toLocaleString()})</small>
+        </div>`;
         chatBox.insertAdjacentHTML("beforeend", messageHTML);
         chatBox.scrollTop = chatBox.scrollHeight;
     };
@@ -121,7 +125,7 @@ document.addEventListener("DOMContentLoaded", function () {
         event.preventDefault();
         const resourceElement = event.target.closest(".message[data-resource-id]");
 
-        if (resourceElement) {
+        if (resourceElement && !resourceElement.classList.contains("deleted")) {
             const resourceId = resourceElement.getAttribute("data-resource-id");
 
             // Show the context menu
@@ -158,6 +162,9 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 }
             };
+        } else {
+            // Hide context menu if the resource is deleted
+            contextMenu.style.display = "none";
         }
     });
 
