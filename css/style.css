@@ -34,3 +34,26 @@ label, input, button {
     text-decoration: none;
     border-radius: 5px;
 }
+
+#context-menu {
+    position: absolute;
+    display: none;
+    background-color: #fff;
+    border: 1px solid #ccc;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1000;
+    padding: 10px;
+}
+
+#context-menu button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+    font-size: 14px;
+    color: #333;
+    padding: 5px 10px;
+}
+
+#context-menu button:hover {
+    background-color: #f5f5f5;
+}

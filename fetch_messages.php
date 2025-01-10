@@ -27,15 +27,15 @@ try {
 
     // Fetch messages and resources
     $query = "
-        SELECT 'message' AS type, u.username, m.message_content AS content, m.timestamp, NULL AS file_path
+        SELECT 'message' AS type, u.username, m.message_content AS content, m.timestamp, NULL AS file_path, NULL AS resource_id
         FROM messages m
         JOIN users u ON m.user_id = u.user_id
         WHERE m.group_id = ?
         UNION ALL
-        SELECT 'resource' AS type, u.username, r.file_name AS content, r.upload_time AS timestamp, r.file_path
+        SELECT 'resource' AS type, u.username, r.file_name AS content, r.upload_time AS timestamp, r.file_path, r.resource_id
         FROM resources r
         JOIN users u ON r.uploaded_by = u.user_id
-        WHERE r.group_id = ?
+        WHERE r.group_id = ? AND r.deleted = 0
         ORDER BY timestamp ASC
     ";
 
@@ -47,8 +47,9 @@ try {
     $data = [];
     while ($row = $result->fetch_assoc()) {
         if ($row['type'] === 'resource' && $row['file_path']) {
-            $row['file_path'] = $fileUrlBase . $row['file_path'];
+            $row['file_url'] = $fileUrlBase . $row['file_path'];
         }
+        unset($row['file_path']); // Remove raw file_path from the response
         $data[] = $row;
     }
 

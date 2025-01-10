@@ -104,6 +104,11 @@ $group_picture = !empty($group_picture)
     <input type="file" id="resource-input" style="margin-top: 20px;">
     <button id="upload-btn" style="margin-top: 10px;">Upload Resource</button>
 
+    <!-- Context Menu -->
+    <div id="context-menu">
+        <button id="delete-resource-btn">Delete Resource</button>
+    </div>
+
     <script src="js/group_chat.js"></script>
     <script>
         const groupId = <?php echo json_encode($group_id); ?>;

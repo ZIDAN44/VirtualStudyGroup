@@ -78,12 +78,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $stmt = $conn->prepare("INSERT INTO resources (group_id, uploaded_by, file_name, file_path) VALUES (?, ?, ?, ?)");
                 $stmt->bind_param("iiss", $group_id, $user_id, $originalFileName, $hashedFileName);
                 if ($stmt->execute()) {
+                    $resource_id = $stmt->insert_id;
+                    $stmt->close();
+
                     // Generate the full resource URL
                     $resourceUrl = "$minioHost/$minioBucketName/$fileName";
 
                     echo json_encode([
                         "status" => "success",
                         "message" => "Resource uploaded successfully!",
+                        "resource_id" => $resource_id, // Return resource ID
                         "file_name" => $originalFileName,
                         "file_url" => $resourceUrl,
                         "file_path" => $hashedFileName, // Keep file_path if needed
