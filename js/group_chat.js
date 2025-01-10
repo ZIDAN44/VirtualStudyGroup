@@ -125,7 +125,8 @@ document.addEventListener("DOMContentLoaded", function () {
         event.preventDefault();
         const resourceElement = event.target.closest(".message[data-resource-id]");
 
-        if (resourceElement && !resourceElement.classList.contains("deleted")) {
+        // Check if it's a resource and not deleted
+        if (resourceElement && !resourceElement.classList.contains("deleted") && resourceElement.classList.contains("resource")) {
             const resourceId = resourceElement.getAttribute("data-resource-id");
 
             // Show the context menu
@@ -163,7 +164,7 @@ document.addEventListener("DOMContentLoaded", function () {
                 }
             };
         } else {
-            // Hide context menu if the resource is deleted
+            // Hide context menu if not a resource or if it's deleted
             contextMenu.style.display = "none";
         }
     });
