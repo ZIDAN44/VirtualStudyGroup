@@ -31,7 +31,7 @@ class ChatServer implements MessageComponentInterface {
     public function onMessage(ConnectionInterface $from, $msg) {
         $data = json_decode($msg, true);
 
-        if (!isset($data['type'], $data['group_id']) || !in_array($data['type'], ['message', 'resource'], true)) {
+        if (!isset($data['type'], $data['group_id']) || !in_array($data['type'], ['message', 'resource', 'delete_resource'], true)) {
             echo "Invalid message format or type.\n";
             return;
         }
