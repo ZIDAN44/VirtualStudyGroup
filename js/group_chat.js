@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", function () {
         }
     });
 
-    uploadBtn.addEventListener("click", () => {
+    uploadBtn.addEventListener("click", async () => {
         const file = resourceInput.files[0];
         if (!file) return alert("Select a file to upload.");
 
@@ -77,24 +77,31 @@ document.addEventListener("DOMContentLoaded", function () {
         formData.append("group_id", groupId);
         formData.append("resource", file);
 
-        fetch("upload_resource.php", { method: "POST", body: formData })
-            .then((res) => res.json())
-            .then((data) => {
-                if (data.status === "success") {
-                    socket.send(
-                        JSON.stringify({
-                            type: "resource",
-                            group_id: groupId,
-                            user_id: userId,
-                            username,
-                            content: data.file_name,
-                            file_url: data.file_url,
-                            timestamp: new Date().toISOString(),
-                        })
-                    );
-                    resourceInput.value = ""; // Clear the file input
-                }
-            })
-            .catch(() => alert("Failed to upload resource."));
+        try {
+            const response = await fetch("upload_resource.php", {
+                method: "POST",
+                body: formData,
+            });
+
+            const result = await response.json();
+            if (result.status === "success") {
+                socket.send(
+                    JSON.stringify({
+                        type: "resource",
+                        group_id: groupId,
+                        user_id: userId,
+                        username,
+                        content: result.file_name,
+                        file_url: result.file_url,
+                        timestamp: new Date().toISOString(),
+                    })
+                );
+                resourceInput.value = ""; // Clear the file input
+            } else {
+                alert(result.message);
+            }
+        } catch {
+            alert("Failed to upload resource.");
+        }
     });
 });
