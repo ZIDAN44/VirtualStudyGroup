@@ -135,3 +135,17 @@
 .group-header h2 a:hover {
     text-decoration: underline;
 }
+
+/* Style for the Settings Icon */
+.settings-icon {
+    margin-left: 10px;
+    color: #333;
+    text-decoration: none;
+    font-size: 1.2em;
+    vertical-align: middle;
+    transition: color 0.3s ease;
+}
+
+.settings-icon:hover {
+    color: #007BFF;
+}

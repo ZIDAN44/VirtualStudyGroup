@@ -35,11 +35,17 @@ if ($stmt = $conn->prepare($query)) {
     <title>Dashboard - Virtual Study Group</title>
     <link rel="stylesheet" href="css/style.css">
     <link rel="stylesheet" href="css/group_style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" />
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
 
-    <h2>Welcome, <?php echo htmlspecialchars($_SESSION['username'], ENT_QUOTES, 'UTF-8'); ?>!</h2>
+    <h2>
+        Welcome, <?php echo htmlspecialchars($_SESSION['username'], ENT_QUOTES, 'UTF-8'); ?>!
+        <a href="user_profile.php" class="settings-icon" title="Settings" aria-label="Settings">
+            <i class="fas fa-cog"></i>
+        </a>
+    </h2>
 
     <?php
     // Display success or error message if set

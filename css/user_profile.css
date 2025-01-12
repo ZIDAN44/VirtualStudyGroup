@@ -1,0 +1,106 @@
+/* Profile Thumbnail */
+.profile-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 20px;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+
+.profile-header-thumbnail {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    align-items: center;
+}
+
+.profile-header h2 {
+    margin: 0;
+    font-size: 1.5em;
+    color: #333;
+    display: flex;
+    margin-left: 10px;
+}
+
+/* Container for the profile picture and camera icon overlay */
+.profile-picture-container {
+    position: relative;
+    display: inline-block;
+    width: 40px; /* Match the .profile-header-thumbnail size */
+    height: 40px;
+}
+
+/* The overlay that appears on hover */
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    opacity: 0; /* Hidden by default */
+    transition: opacity 0.3s ease;
+    cursor: pointer;
+}
+
+/* Show the overlay when hovering over the container */
+.profile-picture-container:hover .overlay {
+    opacity: 1;
+}
+
+/* Camera icon styling */
+.camera-icon {
+    font-size: 16px;
+    pointer-events: none;
+}
+
+/* Editable fields */
+.editable {
+    cursor: pointer;
+    background-color: #f9f9f9;
+}
+.editable:hover {
+    background-color: #e9e9e9;
+}
+.input-edit, .select-edit {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 5px;
+    font-size: 1em;
+}
+
+/* Profile Completion Progress Bar */
+.progress-bar {
+    width: 100%;
+    background-color: #f3f3f3;
+    border-radius: 5px;
+    overflow: hidden;
+    height: 20px;
+    margin-top: 5px;
+}
+
+.progress {
+    height: 100%;
+    background-color: #4caf50;
+    width: 50%; /* Initial width */
+    transition: width 0.3s ease;
+}
+
+/* Create and Last Updated Styling */
+#createDate {
+    font-style: italic;
+    color: #555;
+}
+
+#lastUpdated {
+    font-style: italic;
+    color: #555;
+}
