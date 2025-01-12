@@ -29,6 +29,9 @@ $webSocketUrl = $_ENV['WEBSOCKET_URL'] ?? '';
 // Dummy Group Profile Picture URL
 $dummyGPImage = rtrim($minioHost, '/') . '/' . $minioBucketName . '/Dummy_Pic/Dummy_GProfile.png';
 
+// Dummy User Profile Picture URL
+$dummyUPImage = rtrim($minioHost, '/') . '/' . $minioBucketName . '/Dummy_Pic/Dummy_Profile.jpg';
+
 // Validate essential configurations
 if (empty($minioAccessKey) || empty($minioSecretKey) || empty($minioBucketName)) {
     die("Critical configuration error: MinIO settings are missing in the .env file.");
