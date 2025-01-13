@@ -35,12 +35,7 @@ document.addEventListener('DOMContentLoaded', () => {
             // Determine input type based on field
             let inputElement;
 
-            if (field === 'email') {
-                inputElement = document.createElement('input');
-                inputElement.type = 'email';
-                inputElement.value = currentText;
-                inputElement.classList.add('input-edit');
-            } else if (field === 'date_of_birth') {
+            if (field === 'date_of_birth') {
                 inputElement = document.createElement('input');
                 inputElement.type = 'date';
                 inputElement.value = currentText;
