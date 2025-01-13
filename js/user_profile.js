@@ -133,16 +133,27 @@ document.addEventListener('DOMContentLoaded', () => {
                                             lastUpdatedCell.textContent = response.updated_at;
                                         }
                                     }
+
+                                    // Notify user if bonus is awarded
+                                    if (response.bonus_awarded) {
+                                        showToast(response.message, 'success');
+
+                                        const pointsLink = document.querySelector('.points-link');
+                                        if (pointsLink && response.new_points !== null) {
+                                            pointsLink.textContent = `${response.new_points} Points`;
+                                        }
+                                    }
                                 } else {
-                                    alert('Error: ' + response.message);
+                                    showToast('Error: ' + response.message, 'error');
+
                                     cell.textContent = currentText || 'Click to edit';
                                 }
                             } catch (e) {
-                                alert('An unexpected error occurred.');
+                                showToast('An unexpected error occurred.', 'error');
                                 cell.textContent = currentText || 'Click to edit';
                             }
                         } else {
-                            alert('An error occurred while updating.');
+                            showToast('An error occurred while updating.', 'error');
                             cell.textContent = currentText || 'Click to edit';
                         }
                     }

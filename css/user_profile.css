@@ -104,3 +104,41 @@
     font-style: italic;
     color: #555;
 }
+
+/* Style for Points Link */
+.points-link {
+    color: #28a745;
+    text-decoration: none;
+    font-weight: bold;
+    transition: color 0.3s ease;
+}
+
+.points-link:hover {
+    color: #1e7e34;
+}
+
+/* Points History Table Styling */
+.point-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+.point-table th, .point-table td {
+    border: 2px solid #adadad;
+    padding: 12px;
+    text-align: center;
+}
+
+.point-table th {
+    background-color: #d8d7d7;
+    font-weight: bold;
+}
+
+.point-table tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+.point-table tr:hover {
+    background-color: #e9e9e9;
+}

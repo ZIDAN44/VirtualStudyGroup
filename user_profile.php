@@ -14,7 +14,7 @@ $user_id = $_SESSION['user_id'];
 $user_stmt = $conn->prepare("
     SELECT 
         user_id, username, full_name, email, phone_number, profile_picture, status_message, 
-        date_of_birth, gender, geo_location, created_at, updated_at, profile_com
+        date_of_birth, gender, geo_location, created_at, updated_at, profile_com, points
     FROM users 
     WHERE user_id = ?
 ");
@@ -75,7 +75,15 @@ $conn->close();
     <title>Your Profile</title>
     <link rel="stylesheet" href="css/user_profile.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" />
-    <script src="js/user_profile.js"></script>
+
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+    <!-- Toastify JS -->
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <script src="js/common.js" defer></script>
+    <script src="js/user_profile.js" defer></script>
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
@@ -152,6 +160,14 @@ $conn->close();
             <th>Geo Location:</th>
             <td class="editable" data-field="geo_location">
                 <?php echo htmlspecialchars($user['geo_location'], ENT_QUOTES, 'UTF-8') ?: 'Click to edit'; ?>
+            </td>
+        </tr>
+        <tr>
+            <th>Points:</th>
+            <td>
+                <a href="points_history.php" class="points-link">
+                    <?php echo htmlspecialchars($user['points'], ENT_QUOTES, 'UTF-8'); ?> Points
+                </a>
             </td>
         </tr>
         <tr>

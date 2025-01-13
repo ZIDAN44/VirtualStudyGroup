@@ -52,11 +52,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("Error inserting user: " . $insert_user_stmt->error);
         }
 
+        // Retrieve the inserted user's ID
+        $new_user_id = $insert_user_stmt->insert_id;
+        $insert_user_stmt->close();
+
+        // Insert initial points into points_history
+        $insert_points_history_stmt = $conn->prepare("
+            INSERT INTO points_history (user_id, points_change, reason, created_at, updated_at) 
+            VALUES (?, ?, ?, NOW(), NOW())
+        ");
+        $initial_points = 50;
+        $reason = "Registration Bonus";
+        $insert_points_history_stmt->bind_param("iis", $new_user_id, $initial_points, $reason);
+
+        if (!$insert_points_history_stmt->execute()) {
+            throw new Exception("Error inserting points history: " . $insert_points_history_stmt->error);
+        }
+        $insert_points_history_stmt->close();
+
         // Commit the transaction
         $conn->commit();
 
         // Set session and redirect to the dashboard
-        $_SESSION['user_id'] = $insert_user_stmt->insert_id;
+        $_SESSION['user_id'] = $new_user_id;
         $_SESSION['username'] = $username;
         $_SESSION['success_message'] = "Registration successful!";
         header("Location: dashboard.php");
