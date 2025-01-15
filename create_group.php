@@ -34,13 +34,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $max_members = isset($_POST['max_members']) && $_POST['max_members'] !== '' ? (int)$_POST['max_members'] : 15;
     $join_rule = in_array($_POST['join_rule'], ['auto', 'manual']) ? $_POST['join_rule'] : 'auto';
     $rules = trim($_POST['rules'] ?? '');
+    $req_point_input = trim($_POST['req_point'] ?? '');
 
     // Validate required fields
     if (empty($group_name)) {
         $error_message = "Group name is required.";
     } elseif (strlen($group_name) > 255) {
         $error_message = "Group name must not exceed 255 characters.";
+    } elseif (!is_numeric($req_point_input) || (int)$req_point_input < 0) {
+        $error_message = "Required points must be a non-negative integer.";
     } else {
+        $req_point = (int)$req_point_input;
+
         // Begin transaction
         $conn->begin_transaction();
         $stmt = null;
@@ -52,10 +57,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             // Insert the new group into the groups table
             $stmt = $conn->prepare("
-                INSERT INTO groups (group_name, group_handle, description, created_by, max_members, join_rule, rules, current_members, created_at, updated_at) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, 1, NOW(), NOW())
+                INSERT INTO groups (group_name, group_handle, description, created_by, max_members, join_rule, rules, req_point, current_members, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 1, NOW(), NOW())
             ");
-            $stmt->bind_param("sssisss", $group_name, $group_handle, $description, $created_by, $max_members, $join_rule, $rules);
+            $stmt->bind_param("sssisssi", $group_name, $group_handle, $description, $created_by, $max_members, $join_rule, $rules, $req_point);
 
             if (!$stmt->execute()) {
                 throw new Exception("Error creating study group: " . $stmt->error);
@@ -130,6 +134,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <label for="rules">Group Rules:</label>
         <textarea name="rules" rows="5" placeholder="Optional: Add group-specific rules or policies"></textarea>
+
+        <label for="req_point">Required Points to Join:</label>
+        <input type="number" name="req_point" min="0" value="0" required>
 
         <button type="submit">Create Group</button>
     </form>

@@ -16,7 +16,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['group_id'])) {
         $ban_check_stmt = $conn->prepare("SELECT 1 FROM banned_users WHERE user_id = ? AND group_id = ?");
         $ban_check_stmt->bind_param("ii", $user_id, $group_id);
         $ban_check_stmt->execute();
-        if ($ban_check_stmt->fetch()) {
+        $ban_check_stmt->store_result();
+        if ($ban_check_stmt->num_rows > 0) {
             throw new Exception("You are banned from joining this group.");
         }
         $ban_check_stmt->close();
@@ -25,7 +26,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['group_id'])) {
         $member_check_stmt = $conn->prepare("SELECT 1 FROM group_members WHERE user_id = ? AND group_id = ?");
         $member_check_stmt->bind_param("ii", $user_id, $group_id);
         $member_check_stmt->execute();
-        if ($member_check_stmt->fetch()) {
+        $member_check_stmt->store_result();
+        if ($member_check_stmt->num_rows > 0) {
             throw new Exception("You are already a member of this group.");
         }
         $member_check_stmt->close();
@@ -34,20 +36,36 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['group_id'])) {
         $request_check_stmt = $conn->prepare("SELECT 1 FROM join_requests WHERE user_id = ? AND group_id = ? AND status = 'pending'");
         $request_check_stmt->bind_param("ii", $user_id, $group_id);
         $request_check_stmt->execute();
-        if ($request_check_stmt->fetch()) {
+        $request_check_stmt->store_result();
+        if ($request_check_stmt->num_rows > 0) {
             throw new Exception("You have already sent a join request for this group. Please wait for approval.");
         }
         $request_check_stmt->close();
 
         // Fetch group details
-        $rule_stmt = $conn->prepare("SELECT join_rule, max_members, current_members FROM groups WHERE group_id = ?");
+        $rule_stmt = $conn->prepare("SELECT join_rule, max_members, current_members, req_point FROM groups WHERE group_id = ?");
         $rule_stmt->bind_param("i", $group_id);
         $rule_stmt->execute();
-        $rule_stmt->bind_result($join_rule, $max_members, $current_members);
+        $rule_stmt->bind_result($join_rule, $max_members, $current_members, $req_point);
         if (!$rule_stmt->fetch()) {
             throw new Exception("Group not found.");
         }
         $rule_stmt->close();
+
+        // Fetch user's current points
+        $points_stmt = $conn->prepare("SELECT points FROM users WHERE user_id = ?");
+        $points_stmt->bind_param("i", $user_id);
+        $points_stmt->execute();
+        $points_stmt->bind_result($user_points);
+        if (!$points_stmt->fetch()) {
+            throw new Exception("User not found.");
+        }
+        $points_stmt->close();
+
+        // Check if user has enough points
+        if ($user_points < $req_point) {
+            throw new Exception("You do not have enough points to join this group. Required: $req_point points.");
+        }
 
         if ($join_rule === 'manual') {
             // Add a join request
@@ -63,7 +81,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['group_id'])) {
             $conn->begin_transaction();
 
             try {
-                if ($current_members < $max_members || $max_members === null) {
+                if (($max_members === null || $max_members === 0) || $current_members < $max_members) {
                     // Add the user as a Member
                     $add_member_stmt = $conn->prepare("INSERT INTO group_members (user_id, group_id, role) VALUES (?, ?, 'Member')");
                     $add_member_stmt->bind_param("ii", $user_id, $group_id);

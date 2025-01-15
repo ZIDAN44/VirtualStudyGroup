@@ -39,13 +39,13 @@ if ($user_role !== 'Admin' && (!$can_edit_group_info || $user_role !== 'Co-Admin
 
 // Fetch group details
 $group_stmt = $conn->prepare("
-    SELECT group_name, group_handle, description, group_picture, max_members, join_rule, rules, current_members
+    SELECT group_name, group_handle, description, group_picture, max_members, join_rule, rules, current_members, req_point
     FROM groups 
     WHERE group_id = ?
 ");
 $group_stmt->bind_param("i", $group_id);
 $group_stmt->execute();
-$group_stmt->bind_result($group_name, $group_handle, $description, $group_picture, $max_members, $join_rule, $rules, $current_members);
+$group_stmt->bind_result($group_name, $group_handle, $description, $group_picture, $max_members, $join_rule, $rules, $current_members, $req_point);
 $group_stmt->fetch();
 $group_stmt->close();
 
@@ -57,13 +57,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $new_join_rule = $_POST['join_rule'];
     $new_rules = $_POST['rules'] ?? null;
     $new_max_members = isset($_POST['max_members']) && $_POST['max_members'] !== '' ? (int)$_POST['max_members'] : null;
+    $new_req_point_input = trim($_POST['req_point'] ?? '');
 
-    // Validate maximum members
+    // Validate maximum members and req_point
     if ($new_max_members !== null && $new_max_members < $current_members) {
         $_SESSION['error_message'] = "Maximum members cannot be less than the current number of members ($current_members).";
         header("Location: edit_group_info.php?group_id=$group_id");
         exit();
     }
+    if (!is_numeric($new_req_point_input) || (int)$new_req_point_input < 0) {
+        $_SESSION['error_message'] = "Required points must be a non-negative integer.";
+        header("Location: edit_group_info.php?group_id=$group_id");
+        exit();
+    }
+    $new_req_point = (int)$new_req_point_input;
 
     // Check for unique group handle
     $handle_check_stmt = $conn->prepare("SELECT 1 FROM groups WHERE group_handle = ? AND group_id != ?");
@@ -102,18 +109,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             group_picture = ?, 
             max_members = ?, 
             join_rule = ?, 
-            rules = ? 
+            rules = ?, 
+            req_point = ? 
         WHERE group_id = ?
     ");
     $update_stmt->bind_param(
-        "ssssissi", 
-        $new_group_name, 
-        $new_group_handle, 
-        $new_description, 
-        $new_group_picture, 
-        $new_max_members, 
-        $new_join_rule, 
-        $new_rules, 
+        "ssssissii", 
+        $new_group_name,
+        $new_group_handle,
+        $new_description,
+        $new_group_picture,
+        $new_max_members,
+        $new_join_rule,
+        $new_rules,
+        $new_req_point,
         $group_id
     );
 
@@ -181,6 +190,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <label for="rules">Group Rules:</label>
         <textarea name="rules" rows="5"><?php echo htmlspecialchars($rules, ENT_QUOTES, 'UTF-8'); ?></textarea>
+
+        <label for="req_point">Required Points to Join:</label>
+        <input type="number" name="req_point" min="0" value="<?php echo htmlspecialchars($req_point, ENT_QUOTES, 'UTF-8'); ?>" required>
+        <small>Specify the minimum points a user must have to join this group.</small>
 
         <button type="submit">Save Changes</button>
     </form>
