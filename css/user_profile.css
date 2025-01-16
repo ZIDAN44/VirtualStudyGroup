@@ -205,6 +205,55 @@ body {
     transition: background 0.3s ease;
 }
 
+/* Profile Details Table */
+.profile-details {
+    width: 80%;
+    max-width: 850px;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background: #ffffff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    text-align: left;
+}
+
+/* Table Header and Cells */
+.profile-details th, .profile-details td {
+    padding: 10px 20px;
+    font-size: 1em;
+    border: none;
+}
+
+.profile-details th {
+    background: #f4f6f9;
+    color: #333;
+    font-weight: 550;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    font-size: 0.85em;
+    border-bottom: 2px solid #e0e4e8;
+    text-align: left;
+    width: 40%;
+}
+
+.profile-details td {
+    color: #555;
+    border-bottom: 1px solid #eaeaea;
+    text-align: left;
+}
+
+/* Highlight alternate rows */
+.profile-details tr:nth-child(even) {
+    background: #f9fbfd;
+}
+
+/* Hover Effect */
+.profile-details tr:hover {
+    background: #f1f5f9;
+    transition: background 0.3s ease-in-out;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .profile-header {
@@ -228,5 +277,14 @@ body {
     .point-table th, .point-table td {
         padding: 12px;
         font-size: 0.9em;
+    }
+
+    .profile-details th, .profile-details td {
+        padding: 10px 12px;
+        font-size: 0.9em;
+    }
+
+    .profile-details {
+        width: 90%;
     }
 }

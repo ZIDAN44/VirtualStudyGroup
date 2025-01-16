@@ -119,7 +119,7 @@ $conn->close();
         <p style="color: red;"><?php echo htmlspecialchars($_SESSION['error_message'], ENT_QUOTES, 'UTF-8'); unset($_SESSION['error_message']); ?></p>
     <?php endif; ?>
 
-    <table>
+    <table class="profile-details">
         <tr><th>User ID:</th><td><?php echo htmlspecialchars($user['user_id'], ENT_QUOTES, 'UTF-8'); ?></td></tr>
         <tr><th>Username:</th><td><?php echo htmlspecialchars($user['username'], ENT_QUOTES, 'UTF-8'); ?></td></tr>
         <tr>
