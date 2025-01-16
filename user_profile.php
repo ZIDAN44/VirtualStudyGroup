@@ -32,8 +32,8 @@ $user = $result->fetch_assoc();
 $user_stmt->close();
 
 // Fallback to dummy image if profile picture is empty
-$profile_picture = !empty($user['profile_picture']) 
-    ? htmlspecialchars($user['profile_picture'], ENT_QUOTES, 'UTF-8') 
+$profile_picture = !empty($user['profile_picture'])
+    ? htmlspecialchars($user['profile_picture'], ENT_QUOTES, 'UTF-8')
     : htmlspecialchars($dummyUPImage, ENT_QUOTES, 'UTF-8');
 
 // Handle profile picture upload
@@ -94,9 +94,9 @@ $conn->close();
     <!-- Profile Header Section -->
     <div class="profile-header">
         <div class="profile-picture-container">
-            <img 
-                src="<?php echo $profile_picture; ?>" 
-                alt="<?php echo htmlspecialchars($user['username'], ENT_QUOTES, 'UTF-8'); ?> Thumbnail" 
+            <img
+                src="<?php echo $profile_picture; ?>"
+                alt="<?php echo htmlspecialchars($user['username'], ENT_QUOTES, 'UTF-8'); ?> Thumbnail"
                 class="profile-header-thumbnail"
                 id="profileThumbnail"
             >
@@ -173,9 +173,11 @@ $conn->close();
         <tr>
             <th>Profile Completion:</th>
             <td>
-                <div id="profileComText"><?php echo htmlspecialchars($user['profile_com'] . '%', ENT_QUOTES, 'UTF-8'); ?></div>
-                <div class="progress-bar">
-                    <div class="progress" id="profileComBar" style="width: <?php echo htmlspecialchars($user['profile_com'], ENT_QUOTES, 'UTF-8'); ?>%;"></div>
+                <div class="profile-completion-container">
+                    <span id="profileComText"><?php echo htmlspecialchars($user['profile_com'], ENT_QUOTES, 'UTF-8'); ?>%</span>
+                    <div class="progress-bar">
+                        <div class="progress" id="profileComBar" style="width: <?php echo htmlspecialchars($user['profile_com'], ENT_QUOTES, 'UTF-8'); ?>%;"></div>
+                    </div>
                 </div>
             </td>
         </tr>
@@ -194,18 +196,18 @@ $conn->close();
     </table>
 
     <!-- Hidden Profile Picture Upload Form (triggered via JavaScript) -->
-    <form 
-        action="user_profile.php" 
-        method="POST" 
+    <form
+        action="user_profile.php"
+        method="POST"
         enctype="multipart/form-data"
         id="profilePicForm"
         style="display: none;" 
     >
-        <input 
-            type="file" 
-            name="profile_picture" 
-            accept="image/*" 
-            id="profilePicInput" 
+        <input
+            type="file"
+            name="profile_picture"
+            accept="image/*"
+            id="profilePicInput"
             onchange="document.getElementById('profilePicForm').submit();"
         >
     </form>

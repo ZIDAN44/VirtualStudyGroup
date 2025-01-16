@@ -1,144 +1,232 @@
-/* Profile Thumbnail */
+/* General Reset */
+body {
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #eef2f3, #dfe9f3);
+    color: #333;
+}
+
+/* Profile Header */
 .profile-header {
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 20px;
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-    text-align: center;
+    flex-direction: column;
+    padding: 30px 20px;
+    background: #ffffff;
+    border-radius: 16px;
+    margin: 20px auto;
+    max-width: 600px;
+    box-shadow: 0 12px 20px rgba(0, 0, 0, 0.1), 0 2px 6px rgba(0, 0, 0, 0.08);
 }
 
 .profile-header-thumbnail {
-    width: 40px;
-    height: 40px;
+    width: 100px;
+    height: 100px;
     border-radius: 50%;
     object-fit: cover;
-    align-items: center;
+    border: 4px solid #4caf50;
+    margin-bottom: 15px;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.profile-header-thumbnail:hover {
+    transform: scale(1.1);
+    box-shadow: 0 10px 16px rgba(0, 0, 0, 0.2);
 }
 
 .profile-header h2 {
-    margin: 0;
-    font-size: 1.5em;
-    color: #333;
-    display: flex;
-    margin-left: 10px;
+    margin: 10px 0 0;
+    font-size: 2em;
+    color: #222;
+    font-weight: bold;
+    text-transform: capitalize;
+    letter-spacing: 1px;
+    text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-/* Container for the profile picture and camera icon overlay */
+/* Profile Picture Container */
 .profile-picture-container {
     position: relative;
     display: inline-block;
-    width: 40px; /* Match the .profile-header-thumbnail size */
-    height: 40px;
+    width: 100px;
+    height: 100px;
+    margin-bottom: 10px;
 }
 
-/* The overlay that appears on hover */
 .overlay {
     position: absolute;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.6);
     color: #fff;
     display: flex;
     align-items: center;
     justify-content: center;
     border-radius: 50%;
-    opacity: 0; /* Hidden by default */
-    transition: opacity 0.3s ease;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out, transform 0.3s ease;
     cursor: pointer;
 }
 
-/* Show the overlay when hovering over the container */
 .profile-picture-container:hover .overlay {
+    opacity: 1;
+    transform: scale(1.05);
+}
+
+.camera-icon {
+    font-size: 25px;
+    pointer-events: none;
+    transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.profile-picture-container:hover .camera-icon {
+    transform: rotate(360deg);
     opacity: 1;
 }
 
-/* Camera icon styling */
-.camera-icon {
-    font-size: 16px;
-    pointer-events: none;
-}
-
-/* Editable fields */
+/* Editable Fields */
 .editable {
     cursor: pointer;
-    background-color: #f9f9f9;
+    background: #ffffff;
+    padding: 12px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    transition: all 0.3s ease;
+    font-weight: 500;
+    color: #555;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.06);
 }
+
 .editable:hover {
-    background-color: #e9e9e9;
+    border: 1px solid #ccc;
+    background: #f8f9fb;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
 }
+
 .input-edit, .select-edit {
     width: 100%;
     box-sizing: border-box;
-    padding: 5px;
+    padding: 12px;
     font-size: 1em;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    background: #ffffff;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
 }
 
-/* Profile Completion Progress Bar */
+.input-edit:focus, .select-edit:focus {
+    border-color: #4caf50;
+    box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+    outline: none;
+}
+
+/* Profile Completion Section */
+.profile-completion-container {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    margin: 20px 0;
+}
+
+#profileComText {
+    font-weight: bold;
+    color: #222;
+    font-size: 1.2em;
+}
+
 .progress-bar {
-    width: 100%;
-    background-color: #f3f3f3;
-    border-radius: 5px;
+    flex-grow: 1;
+    background: #f0f4f8;
+    border-radius: 20px;
+    height: 14px;
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.1);
     overflow: hidden;
-    height: 20px;
-    margin-top: 5px;
 }
 
 .progress {
     height: 100%;
-    background-color: #4caf50;
-    width: 50%; /* Initial width */
-    transition: width 0.3s ease;
+    background: linear-gradient(90deg, #4caf50, #81c784);
+    width: 50%;
+    border-radius: 20px 0 0 20px;
+    transition: width 0.3s ease, background 0.3s ease;
 }
 
-/* Create and Last Updated Styling */
-#createDate {
-    font-style: italic;
-    color: #555;
-}
-
-#lastUpdated {
-    font-style: italic;
-    color: #555;
-}
-
-/* Style for Points Link */
+/* Points Link */
 .points-link {
-    color: #28a745;
+    color: #4caf50;
     text-decoration: none;
     font-weight: bold;
-    transition: color 0.3s ease;
+    transition: color 0.3s ease, transform 0.3s ease;
 }
 
 .points-link:hover {
-    color: #1e7e34;
+    color: #388e3c;
+    transform: scale(1.1);
 }
 
-/* Points History Table Styling */
+/* Points History Table */
 .point-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 20px;
+    margin: 20px auto;
+    max-width: 800px;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
 }
 
 .point-table th, .point-table td {
-    border: 2px solid #adadad;
-    padding: 12px;
+    padding: 16px 18px;
     text-align: center;
+    border: 1px solid #e6e9ef;
+    font-size: 1em;
+    color: #444;
 }
 
 .point-table th {
-    background-color: #d8d7d7;
+    background: #f8f9fb;
     font-weight: bold;
 }
 
 .point-table tr:nth-child(even) {
-    background-color: #f9f9f9;
+    background: #f3f6fa;
 }
 
 .point-table tr:hover {
-    background-color: #e9e9e9;
+    background: #eaf1f8;
+    transition: background 0.3s ease;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .profile-header {
+        padding: 20px;
+    }
+
+    .profile-header-thumbnail {
+        width: 80px;
+        height: 80px;
+    }
+
+    .profile-header h2 {
+        font-size: 1.5em;
+    }
+
+    .profile-completion-container {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .point-table th, .point-table td {
+        padding: 12px;
+        font-size: 0.9em;
+    }
 }
