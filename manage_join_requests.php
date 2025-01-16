@@ -38,7 +38,7 @@ if ($user_role !== 'Admin' && !$can_manage_join_requests) {
 
 // Fetch pending join requests
 $requests_stmt = $conn->prepare("
-    SELECT jr.request_id, u.username, jr.request_time 
+    SELECT jr.request_id, u.user_id, u.username, jr.request_time 
     FROM join_requests jr
     JOIN users u ON jr.user_id = u.user_id
     WHERE jr.group_id = ? AND jr.status = 'pending'
@@ -74,6 +74,7 @@ $requests = $requests_stmt->get_result();
                 <li>
                     <strong><?php echo htmlspecialchars($request['username'], ENT_QUOTES, 'UTF-8'); ?></strong>
                     (Requested on <?php echo htmlspecialchars($request['request_time'], ENT_QUOTES, 'UTF-8'); ?>)
+                    | <a href="view_profile.php?user_id=<?php echo htmlspecialchars($request['user_id'], ENT_QUOTES, 'UTF-8'); ?>&group_id=<?php echo htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8'); ?>">View Profile</a>
                     <form action="process_join_request.php" method="POST" style="display:inline;">
                         <input type="hidden" name="request_id" value="<?php echo htmlspecialchars($request['request_id'], ENT_QUOTES, 'UTF-8'); ?>">
                         <input type="hidden" name="group_id" value="<?php echo htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8'); ?>">

@@ -4,13 +4,30 @@ include 'config.php';
 
 // Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
-    $_SESSION['error_message'] = "You must log in to view your points history.";
+    $_SESSION['error_message'] = "You must log in to view points history.";
     header("Location: login.php");
     exit();
 }
 
+// Determine the user ID to fetch the points history
+$view_user_id = isset($_GET['user_id']) ? intval($_GET['user_id']) : null;
+$current_user_id = $_SESSION['user_id'];
+
+// If no user ID is specified, default to the logged-in user
+$user_id = $view_user_id ?: $current_user_id;
+
+// Fetch the username if viewing another user's history
+$username = null;
+if ($view_user_id) {
+    $username_stmt = $conn->prepare("SELECT username FROM users WHERE user_id = ?");
+    $username_stmt->bind_param("i", $view_user_id);
+    $username_stmt->execute();
+    $username_stmt->bind_result($username);
+    $username_stmt->fetch();
+    $username_stmt->close();
+}
+
 // Fetch points history for the user
-$user_id = $_SESSION['user_id'];
 $history_stmt = $conn->prepare("
     SELECT 
         history_id, points_change, reason, created_at
@@ -24,7 +41,7 @@ $history_result = $history_stmt->get_result();
 
 if (!$history_result) {
     $_SESSION['error_message'] = "Failed to retrieve points history.";
-    header("Location: user_profile.php");
+    header("Location: " . ($view_user_id ? "view_profile.php?user_id=$view_user_id" : "user_profile.php"));
     exit();
 }
 
@@ -37,14 +54,32 @@ $conn->close();
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Points History - Virtual Study Group</title>
+    <title>Points History</title>
     <link rel="stylesheet" href="css/user_profile.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" />
 </head>
 <body>
     <?php include 'includes/header.php'; ?>
 
-    <h2>Points History</h2>
+    <!-- Add Back Button below Header -->
+    <div class="back-button-container">
+        <a href="<?php
+                    echo $view_user_id
+                        ? "view_profile.php?user_id=$view_user_id&group_id=" . (isset($_GET['group_id']) ? intval($_GET['group_id']) : '')
+                        : "user_profile.php";
+                    ?>"
+            class="back-button">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
+
+    <h2>
+        <?php
+        echo $view_user_id
+            ? "Points History of " . htmlspecialchars($username, ENT_QUOTES, 'UTF-8')
+            : "Your Points History";
+        ?>
+    </h2>
 
     <?php if (isset($_SESSION['success_message'])): ?>
         <p style="color: green;"><?php echo htmlspecialchars($_SESSION['success_message'], ENT_QUOTES, 'UTF-8'); unset($_SESSION['success_message']); ?></p>
@@ -69,11 +104,11 @@ $conn->close();
                     <tr>
                         <td><?php echo htmlspecialchars($history['history_id'], ENT_QUOTES, 'UTF-8'); ?></td>
                         <td>
-                            <?php 
-                                // Display '+' for positive points, '-' for negative
-                                echo ($history['points_change'] > 0) ? 
-                                    '+' . htmlspecialchars($history['points_change'], ENT_QUOTES, 'UTF-8') . ' Points' : 
-                                    htmlspecialchars($history['points_change'], ENT_QUOTES, 'UTF-8') . ' Points';
+                            <?php
+                            // Display '+' for positive points, '-' for negative
+                            echo ($history['points_change'] > 0) ?
+                                '+' . htmlspecialchars($history['points_change'], ENT_QUOTES, 'UTF-8') . ' Points' :
+                                htmlspecialchars($history['points_change'], ENT_QUOTES, 'UTF-8') . ' Points';
                             ?>
                         </td>
                         <td><?php echo htmlspecialchars($history['reason'], ENT_QUOTES, 'UTF-8'); ?></td>
@@ -83,10 +118,8 @@ $conn->close();
             </tbody>
         </table>
     <?php else: ?>
-        <p>You have no points transactions yet.</p>
+        <p>No points transactions yet.</p>
     <?php endif; ?>
-
-    <p><a href="user_profile.php">Back to Profile</a></p>
 
     <?php include 'includes/footer.php'; ?>
 </body>
