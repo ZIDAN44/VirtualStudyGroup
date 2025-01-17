@@ -104,6 +104,12 @@ $group_picture = !empty($group_picture)
     <input type="file" id="resource-input" style="margin-top: 20px;">
     <button id="upload-btn" style="margin-top: 10px;">Upload Resource</button>
 
+    <div style="text-align: center; margin-top: 10px;">
+        <a href="show_all_res.php?group_id=<?php echo htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8'); ?>" class="show-resources-button">
+            Show All Resources
+        </a>
+    </div>
+
     <!-- Context Menu -->
     <div id="context-menu">
         <button id="delete-resource-btn">Delete Resource</button>

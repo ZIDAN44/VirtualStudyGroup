@@ -1,0 +1,146 @@
+/* General Reset */
+body {
+    font-family: 'Inter', sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #eef2f3, #dfe9f3);
+    color: #333;
+}
+
+/* Header and Titles */
+h2 {
+    text-align: center;
+    margin: 20px 0;
+    font-size: 1.8em;
+    font-weight: bold;
+    color: #222;
+    text-shadow: 1px 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Resource Table Styling */
+.resource-table {
+    width: 90%;
+    max-width: 1000px;
+    margin: 20px auto;
+    border-collapse: collapse;
+    background: #ffffff;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    text-align: left;
+}
+
+/* Table Header Styling */
+.resource-table thead {
+    background: #f4f6f9;
+    text-transform: uppercase;
+    font-size: 0.9em;
+    letter-spacing: 0.6px;
+    color: #555;
+}
+
+.resource-table th {
+    padding: 12px 15px;
+    font-weight: 600;
+    text-align: left;
+    border-bottom: 2px solid #e0e4e8;
+}
+
+/* Table Rows and Cells */
+.resource-table td {
+    padding: 12px 15px;
+    font-size: 0.95em;
+    color: #555;
+    border-bottom: 1px solid #eaeaea;
+    vertical-align: middle;
+}
+
+.resource-table tr:nth-child(even) {
+    background: #f9fbfd;
+}
+
+.resource-table tr:hover {
+    background: #f1f5f9;
+    transition: background 0.3s ease-in-out;
+}
+
+/* Resource Links */
+.resource-table a {
+    color: #4caf50;
+    font-weight: bold;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.resource-table a:hover {
+    color: #388e3c;
+    text-decoration: underline;
+}
+
+/* Vote Button */
+.vote-btn {
+    background: #4caf50;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 12px;
+    font-size: 0.9em;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.vote-btn:hover {
+    background: #388e3c;
+    transform: scale(1.05);
+}
+
+.vote-btn:active {
+    transform: scale(0.95);
+}
+
+/* No Resources Message */
+.no-resources {
+    text-align: center;
+    font-size: 1.1em;
+    color: #666;
+    margin: 20px;
+}
+
+/* Why Vote Section */
+.why-vote-container {
+    width: 60%;
+    max-width: 550px;
+    margin: 20px auto;
+    padding: 5px 10px;
+    background: #ffffff;
+    border-radius: 50px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    color: #333;
+    font-size: 0.8em;
+    text-align: center;
+}
+
+.why-vote-container h3 {
+    font-size: 1.5em;
+    color: #4caf50;
+    margin-bottom: 10px;
+}
+
+.why-vote-container p {
+    line-height: 0.5;
+    color: #555;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .resource-table th, .resource-table td {
+        padding: 10px 12px;
+        font-size: 0.85em;
+    }
+
+    h2 {
+        font-size: 1.5em;
+    }
+}
