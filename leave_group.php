@@ -4,7 +4,7 @@ include 'config.php';
 
 // Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    echo json_encode(["status" => "error", "message" => "You are not logged in."]);
     exit();
 }
 
@@ -37,10 +37,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['group_id'])) {
             $coadmins_stmt->close();
 
             if ($coadmins->num_rows > 0) {
-                $_SESSION['group_id'] = $group_id;
-                $_SESSION['coadmins'] = $coadmins->fetch_all(MYSQLI_ASSOC);
-
-                header("Location: new_admin.php");
+                echo json_encode(["status" => "error", "message" => "Promote a Co-Admin before leaving as Admin."]);
                 exit();
             } else {
                 throw new Exception("No Co-Admins available to promote. You cannot leave the group as Admin.");
@@ -63,18 +60,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['group_id'])) {
             $update_stmt->close();
 
             $conn->commit();
-            $_SESSION['success_message'] = "You have successfully left the group.";
+            echo json_encode(["status" => "success", "message" => "You have successfully left the group."]);
+            exit();
         }
     } catch (Exception $e) {
         $conn->rollback();
-        $_SESSION['error_message'] = $e->getMessage();
+        echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+        exit();
     }
-
-    header("Location: dashboard.php");
-    exit();
 } else {
-    $_SESSION['error_message'] = "Invalid group selection.";
-    header("Location: dashboard.php");
+    echo json_encode(["status" => "error", "message" => "Invalid group selection."]);
     exit();
 }
 ?>

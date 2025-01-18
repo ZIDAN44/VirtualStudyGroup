@@ -3,7 +3,7 @@ session_start();
 include 'config.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    echo json_encode(["status" => "error", "message" => "Unauthorized"]);
     exit();
 }
 
@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_id = $_SESSION['user_id'];
 
     if (!$group_id || !$user_id_to_update || !$new_role) {
-        echo "Invalid input.";
+        echo json_encode(["status" => "error", "message" => "Invalid input."]);
         exit();
     }
 
@@ -27,8 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt->close();
 
     if ($current_role !== 'Admin') {
-        $_SESSION['error_message'] = "Only Admins can update roles.";
-        header("Location: group_members.php?group_id=$group_id");
+        echo json_encode(["status" => "error", "message" => "Only Admins can update roles."]);
         exit();
     }
 
@@ -45,7 +44,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             // Grant Co-Admin permissions
             $permissions_stmt = $conn->prepare("
                 INSERT INTO coadmin_permissions (group_id, user_id, can_edit_group_info, can_manage_join_requests, can_manage_group_members, can_manage_ban_list) 
-                VALUES (?, ?, 1, 1, 1, 1) 
+                VALUES (?, ?, 0, 1, 0, 1) 
                 ON DUPLICATE KEY UPDATE 
                 can_edit_group_info = VALUES(can_edit_group_info), 
                 can_manage_join_requests = VALUES(can_manage_join_requests),
@@ -64,13 +63,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $conn->commit();
-        $_SESSION['success_message'] = "Role updated successfully!";
+        echo json_encode(["status" => "success", "message" => "Role updated successfully!"]);
     } catch (Exception $e) {
         $conn->rollback();
-        $_SESSION['error_message'] = "Failed to update role: " . $e->getMessage();
+        echo json_encode(["status" => "error", "message" => "Failed to update role: " . $e->getMessage()]);
     }
-
-    header("Location: group_members.php?group_id=$group_id");
     exit();
 }
 ?>

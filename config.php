@@ -27,7 +27,7 @@ $minioHost = $_ENV['MINIO_HOST'] ?? '';
 $webSocketUrl = $_ENV['WEBSOCKET_URL'] ?? '';
 
 // Dummy Group Profile Picture URL
-$dummyGPImage = rtrim($minioHost, '/') . '/' . $minioBucketName . '/Dummy_Pic/Dummy_GProfile.png';
+$dummyGPImage = rtrim($minioHost, '/') . '/' . $minioBucketName . '/Dummy_Pic/Dummy_GProfile.jpg';
 
 // Dummy User Profile Picture URL
 $dummyUPImage = rtrim($minioHost, '/') . '/' . $minioBucketName . '/Dummy_Pic/Dummy_Profile.jpg';

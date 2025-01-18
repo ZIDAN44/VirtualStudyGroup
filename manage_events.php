@@ -53,6 +53,8 @@ $events = $events_stmt->get_result();
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
+    <?php include 'includes/header.php'; ?>
+
     <h1>Manage Events</h1>
 
     <!-- Success/Error Messages -->
@@ -95,9 +97,6 @@ $events = $events_stmt->get_result();
             </li>
         <?php endwhile; ?>
     </ul>
-
-    <!-- Back to Group Page -->
-    <p><a href="group_settings.php?group_id=<?php echo $group_id; ?>">Back to Group Settings</a></p>
 </body>
 </html>
 

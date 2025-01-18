@@ -13,7 +13,7 @@ $user_id = $_SESSION['user_id'];
 $group_id = isset($_GET['group_id']) ? intval($_GET['group_id']) : null;
 
 if (!$group_id) {
-    echo "Group not specified.";
+    echo json_encode(["status" => "error", "message" => "Group not specified."]);
     exit();
 }
 
@@ -32,8 +32,7 @@ $permissions_stmt->fetch();
 $permissions_stmt->close();
 
 if ($user_role !== 'Admin' && (!$can_edit_group_info || $user_role !== 'Co-Admin')) {
-    $_SESSION['error_message'] = "You are not authorized to edit group information.";
-    header("Location: group_settings.php?group_id=$group_id");
+    echo json_encode(["status" => "error", "message" => "You are not authorized to edit group information."]);
     exit();
 }
 
@@ -56,18 +55,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $new_description = trim($_POST['description']);
     $new_join_rule = $_POST['join_rule'];
     $new_rules = $_POST['rules'] ?? null;
-    $new_max_members = isset($_POST['max_members']) && $_POST['max_members'] !== '' ? (int)$_POST['max_members'] : null;
+    $new_max_members = isset($_POST['max_members']) && $_POST['max_members'] !== '' ? (int)$_POST['max_members'] : 15;
     $new_req_point_input = trim($_POST['req_point'] ?? '');
 
-    // Validate maximum members and req_point
-    if ($new_max_members !== null && $new_max_members < $current_members) {
-        $_SESSION['error_message'] = "Maximum members cannot be less than the current number of members ($current_members).";
-        header("Location: edit_group_info.php?group_id=$group_id");
+    // Ensure maximum members is not less than current members
+    if ($new_max_members < $current_members) {
+        echo json_encode([
+            "status" => "error",
+            "message" => "Maximum members cannot be less than the current number of members ($current_members)."
+        ]);
         exit();
     }
+
+    // Validate required points
     if (!is_numeric($new_req_point_input) || (int)$new_req_point_input < 0) {
-        $_SESSION['error_message'] = "Required points must be a non-negative integer.";
-        header("Location: edit_group_info.php?group_id=$group_id");
+        echo json_encode([
+            "status" => "error",
+            "message" => "Required points must be a non-negative integer."
+        ]);
         exit();
     }
     $new_req_point = (int)$new_req_point_input;
@@ -79,9 +84,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $handle_check_stmt->store_result();
 
     if ($handle_check_stmt->num_rows > 0) {
-        $_SESSION['error_message'] = "The group handle '$new_group_handle' is already taken. Please choose a different handle.";
+        echo json_encode(["status" => "error", "message" => "The group handle '$new_group_handle' is already taken."]);
         $handle_check_stmt->close();
-        header("Location: edit_group_info.php?group_id=$group_id");
         exit();
     }
     $handle_check_stmt->close();
@@ -91,9 +95,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         try {
             $new_group_picture = uploadGroupPicture($_FILES['group_picture'], $group_id);
         } catch (Exception $e) {
-            // Set user-friendly error message
-            $_SESSION['error_message'] = "Failed to upload group picture. " . htmlspecialchars($e->getMessage(), ENT_QUOTES, 'UTF-8');
-            header("Location: edit_group_info.php?group_id=$group_id");
+            echo json_encode(["status" => "error", "message" => $e->getMessage()]);
             exit();
         }
     } else {
@@ -114,7 +116,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         WHERE group_id = ?
     ");
     $update_stmt->bind_param(
-        "ssssissii", 
+        "ssssissii",
         $new_group_name,
         $new_group_handle,
         $new_description,
@@ -127,14 +129,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     );
 
     if ($update_stmt->execute()) {
-        $_SESSION['success_message'] = "Group information updated successfully!";
-        header("Location: group_settings.php?group_id=$group_id");
+        echo json_encode(["status" => "success", "message" => "Group information updated successfully!"]);
         exit();
     } else {
-        $_SESSION['error_message'] = "Failed to update group information.";
+        echo json_encode(["status" => "error", "message" => "Failed to update group information."]);
     }
 
     $update_stmt->close();
+    exit();
 }
 ?>
 
@@ -144,61 +146,89 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Edit Group Info - <?php echo htmlspecialchars($group_name, ENT_QUOTES, 'UTF-8'); ?></title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/edit_group_info.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" />
+
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- Toastify JS -->
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <!-- Common JS -->
+    <script src="js/common.js"></script>
+
+    <!-- Edit Group Info JS -->
+    <script src="js/edit_group_info.js" defer></script>
 </head>
-<body>
+<body data-group-id="<?php echo htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8'); ?>">
     <?php include 'includes/header.php'; ?>
+
+    <!-- Back Button -->
+    <div class="back-button-container">
+        <a href="<?php echo isset($group_id) ? "group.php?group_id=$group_id" : "dashboard.php"; ?>" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
 
     <h2>Edit Group Information</h2>
 
-    <!-- Success/Error Messages -->
-    <?php if (isset($_SESSION['success_message'])): ?>
-        <p style="color: green;"><?php echo htmlspecialchars($_SESSION['success_message'], ENT_QUOTES, 'UTF-8'); unset($_SESSION['success_message']); ?></p>
-    <?php endif; ?>
-    <?php if (isset($_SESSION['error_message'])): ?>
-        <p style="color: red;"><?php echo htmlspecialchars($_SESSION['error_message'], ENT_QUOTES, 'UTF-8'); unset($_SESSION['error_message']); ?></p>
-    <?php endif; ?>
+    <form id="edit-group-form" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="group_name">Group Name:</label>
+            <input type="text" name="group_name" value="<?php echo htmlspecialchars($group_name, ENT_QUOTES, 'UTF-8'); ?>" required>
+        </div>
 
-    <form action="edit_group_info.php?group_id=<?php echo htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8'); ?>" method="POST" enctype="multipart/form-data">
-        <label for="group_name">Group Name:</label>
-        <input type="text" name="group_name" value="<?php echo htmlspecialchars($group_name, ENT_QUOTES, 'UTF-8'); ?>" required>
+        <div class="form-group">
+            <label for="group_handle">Group Handle:</label>
+            <input type="text" name="group_handle" value="<?php echo htmlspecialchars($group_handle, ENT_QUOTES, 'UTF-8'); ?>" required>
+        </div>
 
-        <label for="group_handle">Group Handle:</label>
-        <input type="text" name="group_handle" value="<?php echo htmlspecialchars($group_handle, ENT_QUOTES, 'UTF-8'); ?>" required>
+        <div class="form-group">
+            <label for="description">Description:</label>
+            <textarea name="description" rows="5" required><?php echo htmlspecialchars($description, ENT_QUOTES, 'UTF-8'); ?></textarea>
+        </div>
 
-        <label for="description">Description:</label>
-        <textarea name="description" rows="5" required><?php echo htmlspecialchars($description, ENT_QUOTES, 'UTF-8'); ?></textarea>
+        <div class="form-group">
+            <label for="group_picture">Group Picture:</label>
+            <?php if ($group_picture): ?>
+                <p>Current Picture: <img src="<?php echo htmlspecialchars($group_picture, ENT_QUOTES, 'UTF-8'); ?>" alt="Group Picture" style="max-width: 100px;"></p>
+            <?php endif; ?>
+            <input type="file" name="group_picture" accept="image/*">
 
-        <label for="group_picture">Group Picture:</label>
-        <input type="file" name="group_picture" accept="image/*">
-        <?php if ($group_picture): ?>
-            <p>Current Picture: <img src="<?php echo htmlspecialchars($group_picture, ENT_QUOTES, 'UTF-8'); ?>" alt="Group Picture" style="max-width: 100px;"></p>
-        <?php endif; ?>
+        </div>
 
-        <label for="max_members">Maximum Members:</label>
-        <input type="number" name="max_members" value="<?php echo htmlspecialchars($max_members, ENT_QUOTES, 'UTF-8'); ?>" placeholder="Leave empty for no limit">
+        <div class="form-group">
+            <label for="max_members">Maximum Members:</label>
+            <input type="number" name="max_members" value="<?php echo htmlspecialchars($max_members, ENT_QUOTES, 'UTF-8'); ?>" min="1" max="1000" placeholder="Default: 15">
+        </div>
 
-        <h3>Group Joining Rules</h3>
-        <label>
-            <input type="radio" name="join_rule" value="auto" <?php echo $join_rule === 'auto' ? 'checked' : ''; ?>>
-            New members can join without approval
-        </label><br>
-        <label>
-            <input type="radio" name="join_rule" value="manual" <?php echo $join_rule === 'manual' ? 'checked' : ''; ?>>
-            New members must wait for Admin approval
-        </label><br>
+        <div class="radio-group">
+            <label>
+                <input type="radio" name="join_rule" value="auto" <?php echo $join_rule === 'auto' ? 'checked' : ''; ?>>
+                New members can join without approval
+            </label>
+            <label>
+                <input type="radio" name="join_rule" value="manual" <?php echo $join_rule === 'manual' ? 'checked' : ''; ?>>
+                New members must wait for Admin approval
+            </label>
+        </div>
 
-        <label for="rules">Group Rules:</label>
-        <textarea name="rules" rows="5"><?php echo htmlspecialchars($rules, ENT_QUOTES, 'UTF-8'); ?></textarea>
+        <div class="form-group">
+            <label for="rules">Group Rules:</label>
+            <textarea name="rules" rows="5"><?php echo htmlspecialchars($rules, ENT_QUOTES, 'UTF-8'); ?></textarea>
+        </div>
 
-        <label for="req_point">Required Points to Join:</label>
-        <input type="number" name="req_point" min="0" value="<?php echo htmlspecialchars($req_point, ENT_QUOTES, 'UTF-8'); ?>" required>
-        <small>Specify the minimum points a user must have to join this group.</small>
+        <div class="form-group">
+            <label for="req_point">Required Points to Join:</label>
+            <input type="number" name="req_point" min="0" value="<?php echo htmlspecialchars($req_point, ENT_QUOTES, 'UTF-8'); ?>" required>
+        </div>
 
         <button type="submit">Save Changes</button>
     </form>
-
-    <p><a href="group_settings.php?group_id=<?php echo htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8'); ?>">Back to Settings</a></p>
 
     <?php include 'includes/footer.php'; ?>
 </body>

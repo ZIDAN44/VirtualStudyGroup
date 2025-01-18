@@ -8,6 +8,32 @@ body {
     color: #333;
 }
 
+/* Back Button */
+.back-button-container {
+    margin: 20px auto;
+    max-width: 800px;
+    text-align: left;
+}
+
+.back-button {
+    text-decoration: none;
+    color: #4caf50;
+    font-weight: bold;
+    font-size: 0.95em;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: color 0.3s ease;
+}
+
+.back-button i {
+    font-size: 1.2em;
+}
+
+.back-button:hover {
+    color: #388e3c;
+}
+
 /* Header and Titles */
 h2 {
     text-align: center;

@@ -27,8 +27,7 @@ $available_groups = $stmt->get_result();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Join a Group - Virtual Study Group</title>
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/group_style.css">
+    <link rel="stylesheet" href="css/group.css">
 </head>
 <body>
     <?php include 'includes/header.php'; ?>

@@ -52,6 +52,7 @@ try {
 
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -59,20 +60,26 @@ try {
     <link rel="stylesheet" href="css/user_profile.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" />
 </head>
+
 <body>
     <?php include 'includes/header.php'; ?>
 
     <!-- Add Back Button below Header -->
     <div class="back-button-container">
         <a href="<?php
-                    echo isset($group_id)
-                        ? "manage_join_requests.php?group_id=$group_id"
-                        : "dashboard.php";
+                    if (isset($_GET['all_members']) && $_GET['all_members'] === '1') {
+                        echo "all_group_members.php?group_id=" . htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8');
+                    } elseif (isset($group_id)) {
+                        echo "manage_join_requests.php?group_id=" . htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8');
+                    } else {
+                        echo "dashboard.php";
+                    }
                     ?>"
             class="back-button">
             <i class="fas fa-arrow-left"></i> Back
         </a>
     </div>
+
 
     <!-- Profile Header Section -->
     <div class="profile-header">
@@ -148,4 +155,5 @@ try {
 
     <?php include 'includes/footer.php'; ?>
 </body>
+
 </html>

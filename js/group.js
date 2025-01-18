@@ -5,12 +5,38 @@ document.addEventListener("DOMContentLoaded", function () {
     const uploadBtn = document.getElementById("upload-btn");
     const resourceInput = document.getElementById("resource-input");
     const contextMenu = document.getElementById("context-menu");
+    const appDrawerToggle = document.getElementById("app-drawer-toggle");
+    const appDrawer = document.getElementById("app-drawer");
+
+    appDrawerToggle.addEventListener("click", function () {
+        // Toggle the visibility of the app drawer
+        if (appDrawer.style.display === "block") {
+            appDrawer.style.display = "none";
+        } else {
+            const rect = appDrawerToggle.getBoundingClientRect();
+            appDrawer.style.top = `${rect.bottom + window.scrollY}px`;
+            appDrawer.style.left = `${rect.left + window.scrollX}px`;
+            appDrawer.style.display = "block";
+        }
+    });
+
+    document.addEventListener("click", function (event) {
+        // Close the app drawer if clicking outside
+        if (
+            !appDrawer.contains(event.target) &&
+            !appDrawerToggle.contains(event.target)
+        ) {
+            appDrawer.style.display = "none";
+        }
+    });
 
     const appendMessage = (msg) => {
+        const isCurrentUser = msg.username === username;
         const isDeleted = msg.type === "resource" && !msg.file_url;
         const messageHTML = `
-        <div class="message ${msg.type} ${isDeleted ? 'deleted' : ''}" data-resource-id="${msg.resource_id || ''}">
-            <strong>${msg.username}:</strong> 
+        <div class="message ${msg.type} ${isDeleted ? 'deleted' : ''} ${isCurrentUser ? 'outgoing' : 'incoming'
+            }" data-resource-id="${msg.resource_id || ''}">
+            <strong>${msg.username}</strong> 
             ${msg.type === "resource"
                 ? msg.file_url
                     ? `<a href="${msg.file_url}" target="_blank">${msg.content || 'File'}</a>`

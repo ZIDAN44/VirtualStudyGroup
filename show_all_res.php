@@ -93,7 +93,7 @@ try {
         </a>
     </div>
 
-    <h2>Resources for Group <?php echo htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8'); ?></h2>
+    <h2>Resources for <?php echo htmlspecialchars($group_name, ENT_QUOTES, 'UTF-8'); ?></h2>
 
     <!-- Why Vote Section -->
     <div class="why-vote-container">

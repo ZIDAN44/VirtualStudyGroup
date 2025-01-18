@@ -1,0 +1,158 @@
+/* General Reset */
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #f9f9fc, #e6e8ed);
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Page Title */
+h2 {
+    text-align: center;
+    margin: 20px 0;
+    font-size: 1.8em;
+    color: #222;
+}
+
+/* Back Button */
+.back-button-container {
+    margin: 20px auto;
+    max-width: 800px;
+    text-align: left;
+}
+
+.back-button {
+    text-decoration: none;
+    color: #4caf50;
+    font-weight: bold;
+    font-size: 0.95em;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: color 0.3s ease;
+}
+
+.back-button i {
+    font-size: 1.2em;
+}
+
+.back-button:hover {
+    color: #388e3c;
+}
+
+/* Form Container */
+form#edit-group-form {
+    max-width: 750px;
+    margin: 20px auto;
+    background: #ffffff;
+    padding: 30px 30px;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Form Groups */
+.form-group {
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Form Group for Group Picture */
+.form-group img {
+    display: block;
+    margin-top: 10px;
+    border: 2px solid #ccc;
+    border-radius: 8px;
+    max-width: 100px;
+    height: auto;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.form-group p {
+    font-size: 0.9em;
+    color: #555;
+    margin-top: 5px;
+}
+
+.form-group label {
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #555;
+}
+
+.form-group input[type="text"],
+.form-group input[type="number"],
+.form-group textarea,
+.form-group input[type="file"] {
+    width: 95%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    font-size: 1em;
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group input[type="number"]:focus,
+.form-group textarea:focus,
+.form-group input[type="file"]:focus {
+    border-color: #4caf50;
+    box-shadow: 0 0 4px rgba(76, 175, 80, 0.5);
+}
+
+.form-group textarea {
+    resize: vertical;
+}
+
+/* Radio Group */
+.radio-group {
+    margin-bottom: 20px;
+}
+
+.radio-group label {
+    display: block;
+    font-weight: normal;
+    color: #555;
+    margin-bottom: 10px;
+}
+
+.radio-group input[type="radio"] {
+    margin-right: 10px;
+}
+
+/* Submit Button */
+button[type="submit"] {
+    display: block;
+    width: 98%;
+    padding: 10px;
+    font-size: 1.5em;
+    background: #4caf50;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+button[type="submit"]:hover {
+    background: #388e3c;
+    transform: scale(1.05);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    form#edit-group-form {
+        padding: 15px 20px;
+    }
+
+    h2 {
+        font-size: 1.5em;
+    }
+
+    .form-group label {
+        font-size: 0.9em;
+    }
+}

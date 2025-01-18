@@ -2,9 +2,8 @@
 session_start();
 include 'config.php';
 
-// Check if the user is logged in
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    echo json_encode(["status" => "error", "message" => "You are not logged in."]);
     exit();
 }
 
@@ -14,11 +13,11 @@ $action = $_POST['action'] ?? null;
 $user_id = $_SESSION['user_id'];
 
 if (!$request_id || !$group_id || !$action) {
-    echo "Invalid request.";
+    echo json_encode(["status" => "error", "message" => "Invalid request."]);
     exit();
 }
 
-// Check if the user is an Admin or has permission to process join requests
+// Check permissions
 $role_check_stmt = $conn->prepare("
     SELECT gm.role, cp.can_manage_join_requests 
     FROM group_members gm
@@ -33,61 +32,40 @@ $role_check_stmt->fetch();
 $role_check_stmt->close();
 
 if ($user_role !== 'Admin' && !$can_manage_join_requests) {
-    $_SESSION['error_message'] = "You are not authorized to process join requests.";
-    header("Location: manage_join_requests.php?group_id=$group_id");
+    echo json_encode(["status" => "error", "message" => "You are not authorized to process join requests."]);
     exit();
 }
 
-if ($action === 'approve') {
-    // Check current and max member counts
-    $member_count_stmt = $conn->prepare("
-        SELECT max_members, current_members 
-        FROM groups 
-        WHERE group_id = ?
-    ");
-    $member_count_stmt->bind_param("i", $group_id);
-    $member_count_stmt->execute();
-    $member_count_stmt->bind_result($max_members, $current_members);
-    $member_count_stmt->fetch();
-    $member_count_stmt->close();
-
-    if ($current_members < $max_members || $max_members === null) {
-        // Approve join request and add user to group
+try {
+    if ($action === 'approve') {
         $conn->begin_transaction();
-        try {
-            $approve_stmt = $conn->prepare("UPDATE join_requests SET status = 'approved' WHERE request_id = ?");
-            $approve_stmt->bind_param("i", $request_id);
-            $approve_stmt->execute();
 
-            $add_stmt = $conn->prepare("
-                INSERT INTO group_members (user_id, group_id, role) 
-                SELECT user_id, group_id, 'Member' FROM join_requests WHERE request_id = ?
-            ");
-            $add_stmt->bind_param("i", $request_id);
-            $add_stmt->execute();
+        $approve_stmt = $conn->prepare("UPDATE join_requests SET status = 'approved' WHERE request_id = ?");
+        $approve_stmt->bind_param("i", $request_id);
+        $approve_stmt->execute();
 
-            $update_members_stmt = $conn->prepare("UPDATE groups SET current_members = current_members + 1 WHERE group_id = ?");
-            $update_members_stmt->bind_param("i", $group_id);
-            $update_members_stmt->execute();
+        $add_stmt = $conn->prepare("
+            INSERT INTO group_members (user_id, group_id, role) 
+            SELECT user_id, group_id, 'Member' FROM join_requests WHERE request_id = ?
+        ");
+        $add_stmt->bind_param("i", $request_id);
+        $add_stmt->execute();
 
-            $conn->commit();
-            $_SESSION['success_message'] = "Join request approved!";
-        } catch (Exception $e) {
-            $conn->rollback();
-            $_SESSION['error_message'] = "An error occurred. Please try again.";
-        }
-    } else {
-        $_SESSION['error_message'] = "Cannot approve request. Group member limit reached.";
+        $update_members_stmt = $conn->prepare("UPDATE groups SET current_members = current_members + 1 WHERE group_id = ?");
+        $update_members_stmt->bind_param("i", $group_id);
+        $update_members_stmt->execute();
+
+        $conn->commit();
+        echo json_encode(["status" => "success", "message" => "Join request approved!"]);
+    } elseif ($action === 'reject') {
+        $reject_stmt = $conn->prepare("UPDATE join_requests SET status = 'rejected' WHERE request_id = ?");
+        $reject_stmt->bind_param("i", $request_id);
+        $reject_stmt->execute();
+
+        echo json_encode(["status" => "success", "message" => "Join request rejected!"]);
     }
-} elseif ($action === 'reject') {
-    // Reject the join request
-    $reject_stmt = $conn->prepare("UPDATE join_requests SET status = 'rejected' WHERE request_id = ?");
-    $reject_stmt->bind_param("i", $request_id);
-    $reject_stmt->execute();
-
-    $_SESSION['success_message'] = "Join request rejected!";
+} catch (Exception $e) {
+    $conn->rollback();
+    echo json_encode(["status" => "error", "message" => "An error occurred. Please try again."]);
 }
-
-header("Location: manage_join_requests.php?group_id=$group_id");
-exit();
 ?>

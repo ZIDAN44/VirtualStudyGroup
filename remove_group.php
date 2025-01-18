@@ -3,15 +3,15 @@ session_start();
 include 'config.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    echo json_encode(["status" => "error", "message" => "You are not logged in."]);
     exit();
 }
 
 $user_id = $_SESSION['user_id'];
-$group_id = $_GET['group_id'] ?? null;
+$group_id = $_POST['group_id'] ?? null;
 
 if (!$group_id) {
-    echo "Group not specified.";
+    echo json_encode(["status" => "error", "message" => "Group not specified."]);
     exit();
 }
 
@@ -24,22 +24,19 @@ $member_check_stmt->fetch();
 $member_check_stmt->close();
 
 if ($user_role !== 'Admin') {
-    $_SESSION['error_message'] = "Only Admins can remove this group.";
-    header("Location: group_settings.php?group_id=$group_id");
+    echo json_encode(["status" => "error", "message" => "Only Admins can remove this group."]);
     exit();
 }
 
-// Delete group and related records
-$delete_group_stmt = $conn->prepare("DELETE FROM groups WHERE group_id = ?");
-$delete_group_stmt->bind_param("i", $group_id);
+// Set is_deleted to true
+$update_group_stmt = $conn->prepare("UPDATE groups SET is_deleted = TRUE WHERE group_id = ?");
+$update_group_stmt->bind_param("i", $group_id);
 
-if ($delete_group_stmt->execute()) {
-    $_SESSION['success_message'] = "Group removed successfully.";
-    header("Location: dashboard.php");
+if ($update_group_stmt->execute()) {
+    echo json_encode(["status" => "success", "message" => "Group marked as deleted successfully."]);
     exit();
 } else {
-    $_SESSION['error_message'] = "Failed to remove group.";
-    header("Location: group_settings.php?group_id=$group_id");
+    echo json_encode(["status" => "error", "message" => "Failed to mark group as deleted."]);
     exit();
 }
 ?>

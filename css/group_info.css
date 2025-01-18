@@ -1,0 +1,251 @@
+/* General Styles */
+body {
+    font-family: 'Inter', sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(135deg, #f9f9fc, #e6e8ed);
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Back Button */
+.back-button-container {
+    margin: 20px auto;
+    max-width: 800px;
+    text-align: left;
+}
+
+.back-button {
+    text-decoration: none;
+    color: #4caf50;
+    font-weight: bold;
+    font-size: 0.95em;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: color 0.3s ease;
+}
+
+.back-button i {
+    font-size: 1.2em;
+}
+
+.back-button:hover {
+    color: #388e3c;
+}
+
+/* Page Heading */
+h2 {
+    text-align: center;
+    font-size: 2em;
+    color: #222;
+    margin-bottom: 20px;
+}
+
+/* Group Details Section */
+.group-details {
+    max-width: 800px;
+    margin: 20px auto;
+    background: #ffffff;
+    border-radius: 12px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    overflow: hidden;
+}
+
+.group-details p {
+    margin: 10px 0;
+    font-size: 1em;
+    color: #555;
+}
+
+.group-details p strong {
+    color: #333;
+    font-weight: 600;
+}
+
+/* Styling for Group Rules */
+.group-details .group-rules {
+    margin: 10px 0;
+    font-size: 1em;
+    color: #555;
+    white-space: pre-line;
+}
+
+.group-details .group-rules ul {
+    margin: 10px 0;
+    padding-left: 20px;
+    list-style: decimal inside;
+}
+
+.group-details .group-rules ul li {
+    margin-bottom: 5px;
+    font-size: 1em;
+    color: #555;
+}
+
+.group-details .group-rules.inline {
+    font-size: 1em;
+    color: #555;
+    white-space: normal;
+    text-align: justify;
+}
+
+/* Group Picture */
+.group-picture {
+    display: block;
+    margin: 0 auto 20px auto;
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid #4caf50;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Leave Group Button */
+form {
+    max-width: 800px;
+    margin: 20px auto;
+    text-align: center;
+}
+
+form button {
+    padding: 10px 20px;
+    font-size: 1em;
+    color: #fff;
+    background: #d9534f;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background 0.3s ease, transform 0.2s ease;
+}
+
+form button:hover {
+    background: #c9302c;
+    transform: scale(1.05);
+}
+
+/* Modal Container */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Modal Content Box */
+.modal-content {
+    background-color: #fff;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 500px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    position: relative;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+/* Modal Heading */
+.modal-content h3 {
+    margin: 0;
+    font-size: 1.5em;
+    color: #333;
+    text-align: center;
+}
+
+/* Modal Paragraph */
+.modal-content p {
+    margin: 15px 0;
+    font-size: 1em;
+    color: #555;
+    text-align: center;
+}
+
+/* Form Elements Inside Modal */
+.modal-content form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Select Dropdown */
+.modal-content select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    font-size: 1em;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    box-sizing: border-box;
+}
+
+/* Buttons */
+.modal-content button {
+    padding: 10px 15px;
+    margin: 5px;
+    font-size: 1em;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+/* Confirm Button */
+.modal-content button[type="submit"] {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.modal-content button[type="submit"]:hover {
+    background-color: #45a049;
+}
+
+/* Cancel Button */
+#cancel-admin-selection {
+    background-color: #f44336;
+    color: white;
+}
+
+#cancel-admin-selection:hover {
+    background-color: #d32f2f;
+}
+
+/* Animation for Modal Appearance */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Make Modal Visible */
+.modal:not(.hidden) {
+    display: block;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .group-details {
+        padding: 15px;
+    }
+
+    .group-details p {
+        font-size: 0.9em;
+    }
+
+    form button {
+        padding: 10px 15px;
+        font-size: 0.9em;
+    }
+}

@@ -3,7 +3,7 @@ session_start();
 include 'config.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    echo json_encode(["status" => "error", "message" => "User not logged in."]);
     exit();
 }
 
@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_id = $_SESSION['user_id'];
 
     if (!$user_id_to_unban || !$group_id) {
-        echo "Invalid input.";
+        echo json_encode(["status" => "error", "message" => "Invalid input."]);
         exit();
     }
 
@@ -32,8 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $permissions_stmt->close();
 
     if ($user_role !== 'Admin' && (!$can_manage_ban_list || $user_role !== 'Co-Admin')) {
-        $_SESSION['error_message'] = "You are not authorized to unban members.";
-        header("Location: banned_members.php?group_id=$group_id");
+        echo json_encode(["status" => "error", "message" => "You are not authorized to unban members."]);
         exit();
     }
 
@@ -42,13 +41,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $unban_stmt->bind_param("ii", $user_id_to_unban, $group_id);
 
     if ($unban_stmt->execute()) {
-        $_SESSION['success_message'] = "Member successfully unbanned.";
+        echo json_encode(["status" => "success", "message" => "Member successfully unbanned."]);
     } else {
-        $_SESSION['error_message'] = "Failed to unban the member. Please try again.";
+        echo json_encode(["status" => "error", "message" => "Failed to unban the member. Please try again."]);
     }
 
     $unban_stmt->close();
-    header("Location: banned_members.php?group_id=$group_id");
-    exit();
 }
 ?>

@@ -32,7 +32,7 @@ $role_check_stmt->close();
 
 if ($user_role !== 'Admin' && !$can_manage_join_requests) {
     $_SESSION['error_message'] = "You are not authorized to manage join requests.";
-    header("Location: group_settings.php?group_id=$group_id");
+    header("Location: dashboard.php");
     exit();
 }
 
@@ -54,41 +54,69 @@ $requests = $requests_stmt->get_result();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Manage Join Requests</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/manage_join_requests.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" crossorigin="anonymous" />
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+    <!-- Toastify JS -->
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <!-- Common JS (for showToast) -->
+    <script src="js/common.js"></script>
+
+    <!-- Manage Join Requests JS -->
+    <script src="js/manage_join_requests.js" defer></script>
 </head>
-<body>
+<body data-group-id="<?php echo htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8'); ?>">
     <?php include 'includes/header.php'; ?>
+
+    <!-- Back Button -->
+    <div class="back-button-container">
+        <a href="<?php echo isset($group_id) ? "group.php?group_id=$group_id" : "dashboard.php"; ?>" class="back-button">
+            <i class="fas fa-arrow-left"></i> Back
+        </a>
+    </div>
 
     <h2>Manage Join Requests</h2>
 
-    <?php if (isset($_SESSION['success_message'])): ?>
-        <p style="color: green;"><?php echo htmlspecialchars($_SESSION['success_message'], ENT_QUOTES, 'UTF-8'); unset($_SESSION['success_message']); ?></p>
-    <?php endif; ?>
-    <?php if (isset($_SESSION['error_message'])): ?>
-        <p style="color: red;"><?php echo htmlspecialchars($_SESSION['error_message'], ENT_QUOTES, 'UTF-8'); unset($_SESSION['error_message']); ?></p>
-    <?php endif; ?>
+    <!-- Real-Time Search Input -->
+    <div class="search-container">
+        <input type="text" id="search-requests" placeholder="Search requests by username...">
+    </div>
 
+    <!-- Requests List -->
     <?php if ($requests->num_rows > 0): ?>
-        <ul>
+        <ul id="requests-list">
             <?php while ($request = $requests->fetch_assoc()): ?>
-                <li>
-                    <strong><?php echo htmlspecialchars($request['username'], ENT_QUOTES, 'UTF-8'); ?></strong>
-                    (Requested on <?php echo htmlspecialchars($request['request_time'], ENT_QUOTES, 'UTF-8'); ?>)
-                    | <a href="view_profile.php?user_id=<?php echo htmlspecialchars($request['user_id'], ENT_QUOTES, 'UTF-8'); ?>&group_id=<?php echo htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8'); ?>">View Profile</a>
-                    <form action="process_join_request.php" method="POST" style="display:inline;">
-                        <input type="hidden" name="request_id" value="<?php echo htmlspecialchars($request['request_id'], ENT_QUOTES, 'UTF-8'); ?>">
-                        <input type="hidden" name="group_id" value="<?php echo htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8'); ?>">
-                        <button name="action" value="approve">Approve</button>
-                        <button name="action" value="reject">Reject</button>
-                    </form>
+                <?php
+                    $user_id = htmlspecialchars($request['user_id'], ENT_QUOTES, 'UTF-8');
+                    $username = htmlspecialchars($request['username'], ENT_QUOTES, 'UTF-8');
+                    $request_time = htmlspecialchars($request['request_time'], ENT_QUOTES, 'UTF-8');
+                    $request_id = htmlspecialchars($request['request_id'], ENT_QUOTES, 'UTF-8');
+                ?>
+                <li class="request-item" data-username="<?php echo strtolower($username); ?>" id="request-<?php echo $request_id; ?>">
+                    <strong><?php echo $username; ?></strong>
+                    (Requested on <?php echo $request_time; ?>)
+                    | <a href="view_profile.php?user_id=<?php echo $user_id; ?>&group_id=<?php echo $group_id; ?>">View Profile</a>
+                    <button 
+                        class="approve-btn" 
+                        data-request-id="<?php echo $request_id; ?>" 
+                        data-user-id="<?php echo $user_id; ?>">Approve</button>
+                    <button 
+                        class="reject-btn" 
+                        data-request-id="<?php echo $request_id; ?>" 
+                        data-user-id="<?php echo $user_id; ?>">Reject</button>
                 </li>
             <?php endwhile; ?>
         </ul>
     <?php else: ?>
-        <p>No pending join requests.</p>
+        <p class="no-req">No pending join requests.</p>
     <?php endif; ?>
-
-    <p><a href="group_settings.php?group_id=<?php echo htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8'); ?>">Back to Settings</a></p>
 
     <?php include 'includes/footer.php'; ?>
 </body>

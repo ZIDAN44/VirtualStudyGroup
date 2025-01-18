@@ -3,7 +3,7 @@ session_start();
 include 'config.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    echo json_encode(["status" => "error", "message" => "Unauthorized"]);
     exit();
 }
 
@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $user_id = $_SESSION['user_id'];
 
     if (!$group_id || !$user_id_to_kick) {
-        echo "Invalid input.";
+        echo json_encode(["status" => "error", "message" => "Invalid input."]);
         exit();
     }
 
@@ -57,16 +57,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $ban_stmt->execute();
 
             $conn->commit();
-            $_SESSION['success_message'] = "Member successfully removed and banned!";
+            echo json_encode(["status" => "success", "message" => "Member successfully removed and banned!"]);
         } catch (Exception $e) {
             $conn->rollback();
-            $_SESSION['error_message'] = "Failed to remove and ban member: " . $e->getMessage();
+            echo json_encode(["status" => "error", "message" => "Failed to remove and ban member: " . $e->getMessage()]);
         }
     } else {
-        $_SESSION['error_message'] = "You do not have permission to perform this action.";
+        echo json_encode(["status" => "error", "message" => "You do not have permission to perform this action."]);
     }
-
-    header("Location: group_members.php?group_id=$group_id");
     exit();
 }
 ?>
