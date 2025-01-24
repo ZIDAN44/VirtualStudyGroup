@@ -8,6 +8,14 @@ body {
     color: #333;
 }
 
+/* Page Title */
+h2 {
+    text-align: center;
+    margin: 20px 0;
+    font-size: 1.8em;
+    color: #222;
+}
+
 /* Back Button */
 .back-button-container {
     margin: 20px auto;
