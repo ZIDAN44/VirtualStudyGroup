@@ -227,5 +227,11 @@ $conn->close();
             onchange="document.getElementById('profilePicForm').submit();"
         >
     </form>
+
+    <!-- Logout Button -->
+    <div class="logout-container">
+        <a href="logout.php" class="logout-button">Logout</a>
+    </div>
+
 </body>
 </html>

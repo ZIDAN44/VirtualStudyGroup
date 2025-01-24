@@ -280,6 +280,39 @@ body {
     transition: background 0.3s ease-in-out;
 }
 
+/* Logout Container Styling */
+.logout-container {
+    text-align: center;
+    margin: 30px auto;
+}
+
+.logout-button {
+    display: inline-block;
+    padding: 12px 20px;
+    background-color: #f44336;
+    color: white;
+    font-size: 1rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    border: none;
+    border-radius: 8px;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: background-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.logout-button:hover {
+    background-color: #d32f2f;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+}
+
+.logout-button:active {
+    transform: translateY(1px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .profile-header {
@@ -312,5 +345,10 @@ body {
 
     .profile-details {
         width: 90%;
+    }
+
+    .logout-button {
+        width: 90%;
+        padding: 14px;
     }
 }
