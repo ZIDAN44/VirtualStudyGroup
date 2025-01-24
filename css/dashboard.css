@@ -1,0 +1,458 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(to bottom, #e6fff7, #ffffff);
+    color: #333;
+}
+
+/* General Scrollbar Styling */
+body::-webkit-scrollbar {
+    width: 8px;
+}
+
+body::-webkit-scrollbar-track {
+    background: #ebebeb;
+    border-radius: 10px;
+}
+
+body::-webkit-scrollbar-thumb {
+    background: #707070;
+    border-radius: 10px;
+    border: 2px solid #ebebeb;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+    background: #505050;
+}
+
+.dashboard-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+    text-align: center;
+}
+
+h1 {
+    font-size: 2.5rem;
+    color: #333;
+    margin-bottom: 20px;
+}
+
+/* Header Styling */
+.dashboard-header {
+    display: inline-block;
+    width: 615px;
+    text-decoration: none;
+}
+
+.search-bar {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.search-bar input {
+    width: 60%;
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 8px 0 0 8px;
+    outline: none;
+}
+
+.search-bar button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    background-color: #4CAF50;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-radius: 0 8px 8px 0;
+}
+
+.search-bar button:hover {
+    background-color: #45a049;
+}
+
+.quick-links {
+    margin: 20px 0;
+}
+
+.quick-links button {
+    padding: 10px 20px;
+    margin: 5px;
+    background-color: #007BFF;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.quick-links button:hover {
+    background-color: #0056b3;
+}
+
+h2 {
+    font-size: 2rem;
+    margin: 40px 0 20px;
+}
+
+.explore-sections {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+}
+
+.explore-card {
+    width: 250px;
+    padding: 20px;
+    border-radius: 15px;
+    text-align: center;
+    color: white;
+    transition: transform 0.3s, box-shadow 0.3s;
+    cursor: pointer;
+}
+
+.explore-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.group-thumbnail {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-bottom: 15px;
+    border: 3px solid #007BFF;
+}
+
+.explore-card h3 {
+    font-size: 1.5rem;
+    margin: 10px 0;
+}
+
+.explore-card .group-handle {
+    font-size: 0.9rem;
+    opacity: 0.8;
+    margin-bottom: 10px;
+}
+
+.explore-card .group-members {
+    font-size: 0.9rem;
+    margin-bottom: 15px;
+}
+
+.explore-card .enter-group {
+    display: inline-block;
+    padding: 8px 15px;
+    background-color: rgba(255, 255, 255, 0.9);
+    color: #007BFF;
+    text-decoration: none;
+    border-radius: 10px;
+    font-weight: bold;
+    transition: background-color 0.3s, color 0.3s;
+}
+
+.explore-card .enter-group:hover {
+    background-color: white;
+    color: #0056b3;
+}
+
+/* Gradient Background Colors */
+.gradient-green {
+    background: linear-gradient(to bottom, #48c6ef, #6f86d6); /* Green gradient */
+}
+
+.gradient-blue {
+    background: linear-gradient(to bottom, #667eea, #764ba2); /* Blue gradient */
+}
+
+.gradient-pink {
+    background: linear-gradient(to bottom, #ff758c, #ff7eb3); /* Pink gradient */
+}
+
+.gradient-purple {
+    background: linear-gradient(to bottom, #845ec2, #d65db1); /* Purple gradient */
+}
+
+.gradient-teal {
+    background: linear-gradient(to bottom, #2af598, #009efd); /* Teal gradient */
+}
+
+.gradient-dark-blue {
+    background: linear-gradient(to bottom, #005c97, #363795); /* Dark blue gradient */
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #f5f5f5f5;
+    border: 1px solid #e1e4e8;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    border-radius: 15px;
+    padding: 20px;
+    max-width: 600px;
+    width: 90%;
+    position: relative;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+.modal h2 {
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    color: #24292e;
+    font-weight: 600;
+    text-align: center;
+}
+
+.close-modal {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: transparent;
+    border: none;
+    font-size: 1.5rem;
+    color: #586069;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.close-modal:hover {
+    color: #24292e;
+}
+
+.modal-search-bar {
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: center;
+}
+
+.modal-search-bar input {
+    width: 80%;
+    padding: 10px;
+    font-size: 1rem;
+    border: 1px solid #e1e4e8;
+    border-radius: 10px;
+    outline: none;
+    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
+    transition: border-color 0.3s;
+}
+
+.modal-search-bar input:focus {
+    border-color: #0366d6;
+}
+
+.modal-groups {
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 10px;
+    border: 1px solid #e1e4e8;
+    border-radius: 10px;
+    background: #ffffffd5;
+}
+
+.modal-group {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px;
+    border-bottom: 1px solid #e1e4e8;
+    transition: background-color 0.3s;
+}
+
+.modal-group:last-child {
+    border-bottom: none;
+}
+
+.modal-group:hover {
+    background-color: #f6f8fa;
+}
+
+.modal-group-label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-grow: 1;
+    cursor: pointer;
+}
+
+.modal-group-thumbnail {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid #d1d5da;
+}
+
+.modal-group-info h4 {
+    font-size: 1rem;
+    margin: 0;
+    color: #0366d6;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.modal-group-info h4 span {
+    font-size: 0.9rem;
+    color: #586069;
+    font-weight: normal;
+}
+
+.modal-group input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    accent-color: #0366d6;
+}
+
+.save-button {
+    display: block;
+    margin: 20px auto 0;
+    padding: 10px 20px;
+    background-color: #28a745;
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.save-button:hover {
+    background-color: #218838;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Scrollbar styling for modal groups */
+.modal-groups::-webkit-scrollbar {
+    width: 6px;
+}
+
+.modal-groups::-webkit-scrollbar-thumb {
+    background: #d1d5da;
+    border-radius: 3px;
+}
+
+.modal-groups::-webkit-scrollbar-thumb:hover {
+    background: #0366d6;
+}
+
+/* Join Group Button */
+.join-group-form {
+    margin: 0;
+}
+
+.join-group-button {
+    padding: 8px 15px;
+    font-size: 1rem;
+    color: white;
+    background-color: #008d05;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.join-group-button:hover {
+    background-color: #45a049;
+}
+
+/* Pagination Styles */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 20px;
+    gap: 10px;
+}
+
+.pagination-btn {
+    padding: 8px 16px;
+    background-color: #007BFF;
+    color: #fff;
+    text-decoration: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.pagination-btn:hover {
+    background-color: #0056b3;
+}
+
+.pagination-btn.disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.current-page {
+    font-size: 1rem;
+    color: #333;
+}
+
+/* Specific Styling for Search Pagination */
+.search-pagination {
+    margin-top: 15px;
+}
+
+/* Modal Pagination Styles */
+.modal-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 15px;
+    gap: 10px;
+}
+
+.modal-pagination .pagination-btn {
+    padding: 6px 12px;
+    background-color: #007BFF;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-size: 0.9rem;
+}
+
+.modal-pagination .pagination-btn:hover {
+    background-color: #0056b3;
+}
+
+.modal-pagination .pagination-btn.disabled {
+    background-color: #cccccc;
+    cursor: not-allowed;
+}
+
+.modal-pagination .current-page {
+    font-size: 1rem;
+    color: #333;
+}
