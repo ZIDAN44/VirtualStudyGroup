@@ -120,12 +120,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <form action="create_group.php" method="POST">
         <div class="form-group">
             <label for="group_name">Group Name:</label>
-            <input type="text" name="group_name" maxlength="255" required>
+            <input type="text" name="group_name" placeholder="Give a simple group name" maxlength="255" required>
         </div>
 
         <div class="form-group">
             <label for="description">Description:</label>
-            <textarea name="description" rows="5"></textarea>
+            <textarea name="description" rows="5" placeholder="Add group-specific descriptions or info"></textarea>
         </div>
 
         <div class="form-group">
@@ -144,12 +144,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="form-group">
             <label for="rules">Group Rules:</label>
-            <textarea name="rules" rows="5" placeholder="Optional: Add group-specific rules or policies"></textarea>
+            <textarea name="rules" rows="5" placeholder="Add group-specific rules or policies"></textarea>
         </div>
 
         <div class="form-group">
             <label for="req_point">Required Points to Join:</label>
-            <input type="number" name="req_point" min="0" value="0" required>
+            <input type="number" name="req_point" min="0" placeholder="Minimun points to join" required>
         </div>
 
         <button type="submit">Create Group</button>
