@@ -1,0 +1,83 @@
+/* General Header Styling */
+header {
+    background: linear-gradient(90deg, #64c468, #2db1bb);
+    color: white;
+    padding: 10px 20px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+header nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Home Link Styling (Aligned Left) */
+header .left-links {
+    display: flex;
+    align-items: center;
+}
+
+header .left-links a {
+    color: white;
+    text-decoration: none;
+    font-size: 1rem;
+    margin-right: 10px;
+    transition: color 0.3s;
+}
+
+header .left-links a:hover {
+    color: #e0e0e0;
+}
+
+/* Welcome and Profile (Aligned Right) */
+header .right-links {
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+header .welcome-message {
+    font-size: 1rem;
+    color: #f9f9f9;
+}
+
+/* Profile Picture */
+header .profile-link {
+    display: flex;
+    align-items: center;
+}
+
+header .profile-picture {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    border: 2px solid white;
+    object-fit: cover;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+header .profile-picture:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    header nav {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+
+    header .right-links {
+        justify-content: center;
+    }
+
+    header .left-links {
+        justify-content: center;
+    }
+}
