@@ -14,37 +14,46 @@ header nav {
     margin: 0 auto;
 }
 
-/* Home Link Styling (Aligned Left) */
-header .left-links {
-    display: flex;
-    align-items: center;
-}
-
-header .left-links a {
-    color: white;
-    text-decoration: none;
-    font-size: 1rem;
-    margin-right: 10px;
-    transition: color 0.3s;
-}
-
-header .left-links a:hover {
-    color: #e0e0e0;
-}
-
-/* Welcome and Profile (Aligned Right) */
+/* Link Sections Styling (Shared for Left and Right) */
+header .left-links,
 header .right-links {
     display: flex;
     align-items: center;
     gap: 15px;
 }
 
+header .left-links a,
+header .right-links a {
+    color: white;
+    text-decoration: none;
+    font-size: 1rem;
+    padding: 5px 10px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    transition: background-color 0.3s, color 0.3s, border-color 0.3s;
+}
+
+/* Hover and Active Effects for Links */
+header .left-links a:hover,
+header .right-links a:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #e0e0e0;
+    border-color: white;
+}
+
+header .left-links a:active,
+header .right-links a:active {
+    background-color: rgba(255, 255, 255, 0.4);
+    color: #d0d0d0;
+}
+
+/* Welcome Message Styling */
 header .welcome-message {
     font-size: 1rem;
     color: #f9f9f9;
 }
 
-/* Profile Picture */
+/* Profile Picture Styling */
 header .profile-link {
     display: flex;
     align-items: center;
@@ -73,11 +82,8 @@ header .profile-picture:hover {
         gap: 10px;
     }
 
+    header .left-links,
     header .right-links {
-        justify-content: center;
-    }
-
-    header .left-links {
         justify-content: center;
     }
 }
