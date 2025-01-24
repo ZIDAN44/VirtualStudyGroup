@@ -3,7 +3,7 @@ session_start();
 include 'config.php';
 
 if (!isset($_SESSION['user_id'])) {
-    header("Location: login.php");
+    echo json_encode(['status' => 'error', 'message' => 'You are not logged in.']);
     exit();
 }
 
@@ -74,8 +74,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['group_id'])) {
             if (!$request_stmt->execute()) {
                 throw new Exception("Error sending join request. Please try again.");
             }
-            $_SESSION['success_message'] = "Your join request has been sent. Please wait for Admin approval.";
             $request_stmt->close();
+            echo json_encode(['status' => 'success', 'message' => 'Your join request has been sent. Please wait for Admin approval.']);
         } elseif ($join_rule === 'auto') {
             // Start a transaction
             $conn->begin_transaction();
@@ -99,9 +99,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['group_id'])) {
                     // Commit the transaction
                     $conn->commit();
 
-                    $_SESSION['success_message'] = "You have successfully joined the group!";
-                    $update_members_stmt->close();
-                    $add_member_stmt->close();
+                    echo json_encode(['status' => 'success', 'message' => 'You have successfully joined the group!']);
                 } else {
                     throw new Exception("This group is full and cannot accept new members.");
                 }
@@ -114,14 +112,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['group_id'])) {
             throw new Exception("Invalid group join rule.");
         }
     } catch (Exception $e) {
-        $_SESSION['error_message'] = $e->getMessage();
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     } finally {
         $conn->close();
     }
 } else {
-    $_SESSION['error_message'] = "Invalid group selection.";
+    echo json_encode(['status' => 'error', 'message' => 'Invalid group selection.']);
 }
-
-header("Location: join_group.php");
 exit();
 ?>
