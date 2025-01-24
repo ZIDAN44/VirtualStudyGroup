@@ -154,9 +154,31 @@ if ($user_role === 'Co-Admin') {
                 <li><a href="edit_group_info.php?group_id=<?php echo $group_id; ?>">Edit Group Information</a></li>
                 <li><a href="manage_join_requests.php?group_id=<?php echo $group_id; ?>">Manage Join Requests</a></li>
                 <li><a href="group_members.php?group_id=<?php echo $group_id; ?>">Manage Group Members</a></li>
-                <li><a href="manage_events.php?group_id=<?php echo $group_id; ?>">Manage Group Events</a></li>
                 <li><a href="banned_members.php?group_id=<?php echo $group_id; ?>">Manage Banned Members</a></li>
             </ul>
+            <!-- More Settings Section -->
+            <div id="more-settings-section" data-group-id="<?php echo htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8'); ?>">
+                <button id="more-settings-toggle">
+                    <i class="fas fa-cogs"></i> More Settings
+                </button>
+                <div id="more-settings-menu" class="hidden">
+                    <ul>
+                        <li>
+                            <a href="#" id="remove-group-link">Remove Group</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Confirmation Modal for Remove Group -->
+            <div id="remove-group-modal" class="modal hidden">
+                <div class="modal-content">
+                    <h3>Are you sure?</h3>
+                    <p>Are you sure you want to remove this group? This action cannot be undone.</p>
+                    <button id="confirm-remove-group">Yes, Remove Group</button>
+                    <button id="cancel-remove-group">Cancel</button>
+                </div>
+            </div>
         <?php endif; ?>
 
         <?php if ($user_role === 'Co-Admin'): ?>
@@ -176,30 +198,6 @@ if ($user_role === 'Co-Admin') {
                 <?php endif; ?>
             </ul>
         <?php endif; ?>
-
-        <!-- More Settings Section -->
-        <div id="more-settings-section" data-group-id="<?php echo htmlspecialchars($group_id, ENT_QUOTES, 'UTF-8'); ?>">
-            <button id="more-settings-toggle">
-                <i class="fas fa-cogs"></i> More Settings
-            </button>
-            <div id="more-settings-menu" class="hidden">
-                <ul>
-                    <li>
-                        <a href="#" id="remove-group-link">Remove Group</a>
-                    </li>
-                </ul>
-            </div>
-        </div>
-
-        <!-- Confirmation Modal for Remove Group -->
-        <div id="remove-group-modal" class="modal hidden">
-            <div class="modal-content">
-                <h3>Are you sure?</h3>
-                <p>Are you sure you want to remove this group? This action cannot be undone.</p>
-                <button id="confirm-remove-group">Yes, Remove Group</button>
-                <button id="cancel-remove-group">Cancel</button>
-            </div>
-        </div>
     </div>
 
     <!-- Chat Section -->
