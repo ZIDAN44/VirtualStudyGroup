@@ -2,6 +2,12 @@
 session_start();
 include 'config.php';
 
+// Redirect logged-in users to the dashboard
+if (isset($_SESSION['user_id'])) {
+    header("Location: dashboard.php");
+    exit();
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Sanitize and validate inputs
     $username = trim($_POST['username']);
@@ -11,24 +17,49 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Validate required fields
     if (empty($username) || empty($email) || empty($password) || empty($confirm_password)) {
-        $_SESSION['error_message'] = "All fields are required.";
-        header("Location: register.php");
+        echo json_encode([
+            "status" => "error",
+            "message" => "All fields are required."
+        ]);
         exit();
     }
 
-    // Validate password match
+    if (strlen($username) < 4 || strlen($username) > 20 || !preg_match('/^[a-zA-Z0-9_]+$/', $username)) {
+        echo json_encode([
+            "status" => "error",
+            "message" => "Username must be 4-20 characters long and can only contain letters, numbers, and underscores."
+        ]);
+        exit();
+    }
+
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        echo json_encode([
+            "status" => "error",
+            "message" => "Invalid email format. Please enter a valid email."
+        ]);
+        exit();
+    }
+
+    if (strlen($password) < 8 || !preg_match('/[A-Z]/', $password) || !preg_match('/[a-z]/', $password) || !preg_match('/[0-9]/', $password)) {
+        echo json_encode([
+            "status" => "error",
+            "message" => "Password must be at least 8 characters long and include an uppercase letter, a lowercase letter, and a number."
+        ]);
+        exit();
+    }
+
     if ($password !== $confirm_password) {
-        $_SESSION['error_message'] = "Passwords do not match.";
-        header("Location: register.php");
+        echo json_encode([
+            "status" => "error",
+            "message" => "Passwords do not match. Please ensure both passwords are the same."
+        ]);
         exit();
     }
 
-    // Hash the password securely
     $hashed_password = password_hash($password, PASSWORD_BCRYPT);
 
     // Start database transaction
     $conn->begin_transaction();
-
     try {
         // Check for existing user by username or email
         $check_user_stmt = $conn->prepare("SELECT 1 FROM users WHERE username = ? OR email = ?");
@@ -41,7 +72,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
         $check_user_stmt->close();
 
-        // Insert the new user into the database
         $insert_user_stmt = $conn->prepare("
             INSERT INTO users (username, email, password, profile_com, created_at, updated_at) 
             VALUES (?, ?, ?, 50, NOW(), NOW())
@@ -49,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $insert_user_stmt->bind_param("sss", $username, $email, $hashed_password);
 
         if (!$insert_user_stmt->execute()) {
-            throw new Exception("Error inserting user: " . $insert_user_stmt->error);
+            throw new Exception("Error creating user account.");
         }
 
         // Retrieve the inserted user's ID
@@ -59,31 +89,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Insert initial points into points_history
         $insert_points_history_stmt = $conn->prepare("
             INSERT INTO points_history (user_id, points_change, reason, created_at, updated_at) 
-            VALUES (?, ?, ?, NOW(), NOW())
+            VALUES (?, 50, 'Registration Bonus', NOW(), NOW())
         ");
-        $initial_points = 50;
-        $reason = "Registration Bonus";
-        $insert_points_history_stmt->bind_param("iis", $new_user_id, $initial_points, $reason);
+        $insert_points_history_stmt->bind_param("i", $new_user_id);
 
         if (!$insert_points_history_stmt->execute()) {
-            throw new Exception("Error inserting points history: " . $insert_points_history_stmt->error);
+            throw new Exception("Error recording points history.");
         }
         $insert_points_history_stmt->close();
 
         // Commit the transaction
         $conn->commit();
 
-        // Set session and redirect to the dashboard
-        $_SESSION['user_id'] = $new_user_id;
-        $_SESSION['username'] = $username;
-        $_SESSION['success_message'] = "Registration successful!";
-        header("Location: dashboard.php");
+        // Set session and redirect
+        echo json_encode([
+            "status" => "success",
+            "message" => "Registration successful! Redirecting..."
+        ]);
         exit();
     } catch (Exception $e) {
         // Rollback the transaction on error
         $conn->rollback();
-        $_SESSION['error_message'] = $e->getMessage();
-        header("Location: register.php");
+        echo json_encode([
+            "status" => "error",
+            "message" => $e->getMessage()
+        ]);
         exit();
     } finally {
         $conn->close();
@@ -97,31 +127,54 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Register - Virtual Study Group</title>
-    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="css/register.css">
+
+    <!-- Toastify CSS -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css">
+
+    <!-- Toastify JS -->
+    <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+
+    <!-- Common JS (for showToast) -->
+    <script src="js/common.js" defer></script>
+
+    <!-- Register JS -->
+    <script src="js/register.js" defer></script>
 </head>
 <body>
-    <h2>Register</h2>
+    <?php include 'includes/header.php'; ?>
 
-    <!-- Display success or error messages -->
-    <?php if (isset($_SESSION['error_message'])): ?>
-        <p style="color: red;"><?php echo htmlspecialchars($_SESSION['error_message'], ENT_QUOTES, 'UTF-8'); unset($_SESSION['error_message']); ?></p>
-    <?php endif; ?>
+    <div class="register-container">
+        <h1>Register</h1>
+        <p>Create an account to join Virtual Study Groups</p>
+        <form id="register-form">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" name="username" placeholder="Enter your username" required>
+            </div>
 
-    <form action="register.php" method="POST">
-        <label for="username">Username:</label>
-        <input type="text" name="username" required>
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" name="email" placeholder="Enter your email" required>
+            </div>
 
-        <label for="email">Email:</label>
-        <input type="email" name="email" required>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" name="password" placeholder="Create a strong password" required>
+            </div>
 
-        <label for="password">Password:</label>
-        <input type="password" name="password" required>
+            <div class="form-group">
+                <label for="confirm_password">Confirm Password</label>
+                <input type="password" name="confirm_password" placeholder="Confirm your password" required>
+            </div>
 
-        <label for="confirm_password">Confirm Password:</label>
-        <input type="password" name="confirm_password" required>
+            <button type="submit" class="register-button">Register</button>
+        </form>
+        <p class="login-link">
+            Already have an account? <a href="login.php">Login here</a>
+        </p>
+    </div>
 
-        <button type="submit">Register</button>
-    </form>
-    <p>Already have an account? <a href="login.php">Login here</a></p>
+    <?php include 'includes/footer.php'; ?>
 </body>
 </html>
