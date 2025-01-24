@@ -189,7 +189,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <div class="form-group">
             <label for="description">Description:</label>
-            <textarea name="description" rows="5" required><?php echo htmlspecialchars($description, ENT_QUOTES, 'UTF-8'); ?></textarea>
+            <textarea name="description" rows="5"><?php echo htmlspecialchars($description, ENT_QUOTES, 'UTF-8'); ?></textarea>
         </div>
 
         <div class="form-group">
