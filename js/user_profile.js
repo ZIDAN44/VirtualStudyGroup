@@ -165,4 +165,16 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
     });
+
+    // Handle Toast Messages from PHP Session
+    if (window.toastMessages) {
+        if (window.toastMessages.success) {
+            showToast(window.toastMessages.success, 'success');
+        }
+        if (window.toastMessages.error) {
+            showToast(window.toastMessages.error, 'error');
+        }
+        // Clear the global variable after displaying
+        window.toastMessages = null;
+    }
 });

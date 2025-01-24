@@ -41,20 +41,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_picture'])) 
     if ($_FILES['profile_picture']['error'] === UPLOAD_ERR_OK) {
         include 'upload_profile_pic.php';
 
-        // Upload profile picture
-        $fileUrl = uploadProfilePicture($_FILES['profile_picture'], $user['user_id']);
-        if ($fileUrl) {
-            // Update profile picture URL in the database
-            $update_pic_stmt = $conn->prepare("UPDATE users SET profile_picture = ? WHERE user_id = ?");
-            $update_pic_stmt->bind_param("si", $fileUrl, $user_id);
-            if ($update_pic_stmt->execute()) {
-                $_SESSION['success_message'] = "Profile picture updated successfully.";
+        try {
+            // Upload profile picture
+            $fileUrl = uploadProfilePicture($_FILES['profile_picture'], $user['user_id']);
+            if ($fileUrl) {
+                // Update profile picture URL in the database
+                $update_pic_stmt = $conn->prepare("UPDATE users SET profile_picture = ? WHERE user_id = ?");
+                $update_pic_stmt->bind_param("si", $fileUrl, $user_id);
+                if ($update_pic_stmt->execute()) {
+                    $_SESSION['success_message'] = "Profile picture updated successfully.";
+                } else {
+                    $_SESSION['error_message'] = "Error updating profile picture: " . $update_pic_stmt->error;
+                }
+                $update_pic_stmt->close();
             } else {
-                $_SESSION['error_message'] = "Error updating profile picture: " . $update_pic_stmt->error;
+                $_SESSION['error_message'] = "Failed to upload profile picture.";
             }
-            $update_pic_stmt->close();
-        } else {
-            $_SESSION['error_message'] = "Failed to upload profile picture.";
+        } catch (Exception $e) {
+            $_SESSION['error_message'] = "Failed to upload profile picture: " . $e->getMessage();
         }
     } else {
         $_SESSION['error_message'] = "Error uploading file.";
@@ -62,6 +66,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_FILES['profile_picture'])) 
 
     header("Location: user_profile.php");
     exit();
+}
+
+// Capture and encode session messages
+$toastMessages = [];
+if (isset($_SESSION['success_message'])) {
+    $toastMessages['success'] = $_SESSION['success_message'];
+    unset($_SESSION['success_message']);
+}
+if (isset($_SESSION['error_message'])) {
+    $toastMessages['error'] = $_SESSION['error_message'];
+    unset($_SESSION['error_message']);
 }
 
 $conn->close();
@@ -82,7 +97,10 @@ $conn->close();
     <!-- Toastify JS -->
     <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
 
+    <!-- Common JS (for showToast) -->
     <script src="js/common.js" defer></script>
+
+    <!-- User Profile JS -->
     <script src="js/user_profile.js" defer></script>
 </head>
 <body>
@@ -110,13 +128,11 @@ $conn->close();
         </h2>
     </div>
 
-    <!-- Display success or error messages -->
-    <?php if (isset($_SESSION['success_message'])): ?>
-        <p style="color: green;"><?php echo htmlspecialchars($_SESSION['success_message'], ENT_QUOTES, 'UTF-8'); unset($_SESSION['success_message']); ?></p>
-    <?php endif; ?>
-
-    <?php if (isset($_SESSION['error_message'])): ?>
-        <p style="color: red;"><?php echo htmlspecialchars($_SESSION['error_message'], ENT_QUOTES, 'UTF-8'); unset($_SESSION['error_message']); ?></p>
+    <!-- Embed Toast Messages as JavaScript Variables -->
+    <?php if (!empty($toastMessages)): ?>
+        <script>
+            window.toastMessages = <?php echo json_encode($toastMessages); ?>;
+        </script>
     <?php endif; ?>
 
     <table class="profile-details">
