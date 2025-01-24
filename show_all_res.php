@@ -32,7 +32,7 @@ try {
     // Sanitize group name for file URLs
     $sanitizedGroupName = preg_replace('/[^A-Za-z0-9]/', '', $group_name);
 
-    // Fetch resources for the group
+    // Fetch resources for the group with `deleted = 0` condition
     $resources_stmt = $conn->prepare("
         SELECT 
             r.resource_id, r.file_name, r.file_path, u.username AS uploader, 
@@ -40,7 +40,7 @@ try {
         FROM resources r
         LEFT JOIN users u ON r.uploaded_by = u.user_id
         LEFT JOIN resource_votes rv ON r.resource_id = rv.resource_id
-        WHERE r.group_id = ?
+        WHERE r.group_id = ? AND r.deleted = 0
         GROUP BY r.resource_id
         ORDER BY r.upload_time DESC
     ");
